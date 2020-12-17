@@ -35,7 +35,7 @@ psn= swift.PSN
 def printsnline(SNnamen, PSNn, SNname2n, galaxyn, redshiftn, typen, n): #creates new HTML code for swift_sn_middle.txt
     owd= os.getcwd()
     os.chdir('..')
-#-----------------data,images, and lcplots must be in current working directory for relative paths to work--------------------------
+#-----------------data,images, and lcplots relative paths --------------------------------------------------------------------
 
     data_path= "data/"+SNnamen+"_uvotB15.1.dat"
     
@@ -45,7 +45,7 @@ def printsnline(SNnamen, PSNn, SNname2n, galaxyn, redshiftn, typen, n): #creates
     
 #-----------------------------------------------------HTML text---------------------------------------------------------------
 
-    texthead= """<tr> \n
+    text= """<tr> \n
     <td align="center" valign="top"> {n} <br></td> \n
              <td align="center" valign="top"><b> {SNnamen} </b><br> &nbsp; \n
              {PSNn} {SNname2n} \n
@@ -62,7 +62,7 @@ def printsnline(SNnamen, PSNn, SNname2n, galaxyn, redshiftn, typen, n): #creates
         textimage= """href="https://github.com/pbrown801/SOUSA/blob/master/images/{SNnamen}_uvot.png"><img \n
                          src="pic.jpg" alt="Swift image" style="border: 0px solid; border: 0px solid; width: 52px; height: 55px;" \n
                           border="0" height="55" width="52"></a><a \n""".format(**locals())
-        texthead+= textimage
+        text+= textimage
 
     #lcfilename html section:
     if os.path.exists(lcplots_path) == True:
@@ -70,7 +70,7 @@ def printsnline(SNnamen, PSNn, SNname2n, galaxyn, redshiftn, typen, n): #creates
                     src="light.jpg" alt="Swift UVOT lightcurve" \n
                      style="border: 0px solid; border: 0px solid; width: \n
                       52px; height: 55px;" border="0" height="55" width="52"></a><a \n""".format(**locals())
-        texthead+= textlc
+        text+= textlc
                     
     #datafilenmesousa html section:
     if os.path.exists(data_path) == True:
@@ -78,16 +78,18 @@ def printsnline(SNnamen, PSNn, SNname2n, galaxyn, redshiftn, typen, n): #creates
                       src="sousa_galaxy_small.png" alt="Swift UVOT data" \n
                        style="border: 0px solid; border: 0px solid; width: \n
                         52px; height: 89px;" border="0" height="89" width="52"></a></td> \n""".format(**locals())
-        texthead+= textdata
+        text+= textdata
 
                    
     textend= """<td align="center" valign="top"><br> \n
                  </td>\n
                   </tr>"""
+                  
+                
     
-    text= texthead + textend
+    textcomb= text + textend
     os.chdir(owd)
-    return(text)
+    return(textcomb)
 
 
 swiftmid= open('new_swift_sn_middle.txt', 'w')
