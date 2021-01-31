@@ -210,8 +210,7 @@ threader.start()
 
 #read csv file----------------------------------------------------------------
 swift= pd.read_csv('NewSwiftSNweblist.csv')
-swift= swift.replace({r'anon',r'Anon',r'AnonHost'},np.nan, regex=True)
-swift = swift.fillna('')
+swift= swift.replace({r'anon',r'Anon',r'AnonHost', r'^\s*$'},np.nan, regex=True)
 
 #requests astrocats catalog---------------------------------------------------
 sn_data= requests.get("https://api.astrocats.space/catalog/ra+dec+host?first")
@@ -224,9 +223,9 @@ def SNHost(SNname):
         try:
             host_names= sn_catalog[SNname]['host']['value']
         except Exception:
-            host_names= ''
+            host_names= np.nan
     else:
-        host_names= ''
+        host_names= np.nan
     return host_names
 
 def SNRa(SNname):
@@ -235,9 +234,9 @@ def SNRa(SNname):
         try:
             snra= "'%s" % sn_catalog[SNname]['ra']['value']
         except Exception: 
-            snra= ''
+            snra= np.nan
     else:
-        snra= ''
+        snra= np.nan
     return snra
 
 def SNDec(SNname):
@@ -245,33 +244,33 @@ def SNDec(SNname):
         try:
             sndec= sn_catalog[SNname]['dec']['value']
         except Exception: #if no dec value input what is given for dec 
-            sndec= ''
+            sndec= np.nan
     else:
-        sndec= ''
+        sndec= np.nan
     return sndec
 swift["HostName"]= swift.apply(lambda row: SNHost(SNname=row['SNname']), axis=1)
 swift["SNra"]= swift.apply(lambda row: SNRa(SNname=row['SNname']), axis=1)
 swift["SNdec"]= swift.apply(lambda row: SNDec(SNname=row['SNname']), axis=1)
 
 #gathers AV data on SuperNovae------------------------------------------------
+
+def AV_empty(Ra, Dec):
+    AV, AVerr, AVsour= np.nan, np.nan, np.nan
+    return pd.Series({'AV': AV, 'AVerr': AVerr, 'AVsour': AVsour})
 def GrabAVbest(Ra,Dec):
-    if Ra is not str('') and Dec is not str(''):
-        ra_fix, dec_fix = Ra, Dec
-        ra_fix= ra_fix.replace("'", "")
-        combined= SkyCoord(ra=ra_fix, dec=dec_fix, unit=(u.hour, u.deg)).to_string('hmsdms')
+    ra_fix, dec_fix = Ra, Dec
+    ra_fix= ra_fix.replace("'", "")
+    combined= SkyCoord(ra=ra_fix, dec=dec_fix, unit=(u.hour, u.deg)).to_string('hmsdms')
+    try:
+        AV, AVerr, AVsour= getAVbest(combined)
+    except Exception:
+        AV, AVerr, AVsour= np.nan, np.nan, np.nan
+    
+    return pd.Series({'AV': AV, 'AVerr': AVerr, 'AVsour': AVsour})
 
-        try:
-            AV,AVerr,source= getAVbest(combined)
-        except Exception:
-            AV,AVerr,source= '','',''
-    else:
-        AV,AVerr,source= '','',''
-    return pd.Series({'AV': AV, 'AVerr': AVerr, 'AVsour': source})
 
-avbest_data=['AV', 'AVerr', 'AVsour']
-if sum(swift.columns.isin(avbest_data))!= 3:
-    swiftAV= pd.DataFrame(swift.apply(lambda row: GrabAVbest(Ra=row['SNra'], Dec=row['SNdec']), axis=1 ))
-    swift= pd.concat([swift,swiftAV], axis=1, sort=False)
+swiftAV= pd.DataFrame(swift.apply(lambda row: GrabAVbest(row['SNra'], row['SNdec']) if pd.isna(row['AV']) and pd.notna(row['SNra']) else AV_empty(row['SNra'], row['SNdec']), axis= 1))
+swift= swift.fillna(swiftAV)
 
 
 #gathers data about host galaxy ---------------------------------------------
@@ -296,8 +295,28 @@ if sum(swift.columns.isin(hostdata_names))!= 10:
     swiftHostData= pd.DataFrame(swift.apply(lambda row: AllHostData(row['HostName']), axis=1))
     swift= pd.concat([swift,swiftHostData], axis=1, sort=False)
     
+def Dist_mod_empty(hv, hverr):
+     distance_mod_cor= np.nan
+     distance_mod_cor_err= np.nan
+     return pd.Series({'Dist_mod_cor': distance_mod_cor, 'Dist_mod_cor_err': distance_mod_cor_err})
+def Distance_mod_cor(hv, hv_err):
+    h0 = 72.0
+    h0err = 5.0
+
+    try:
+        distance_mod_cor = 5*math.log(float(hv)/h0,10)+25 #hubble flow
+        distance_mod_cor_err = math.sqrt(((5*float(hv_err))/(float(hv)*math.log(10,10)))**2+((5*200)/(float(hv)*math.log(10,10)))**2 + ((5*5.0)/(h0*math.log(10,10)))**2)
+    except Exception:
+        distance_mod_cor= np.nan
+        distance_mod_cor_err= np.nan
+    
+    return pd.Series({'Dist_mod_cor': distance_mod_cor, 'Dist_mod_cor_err': distance_mod_cor_err})
+
+swiftDist_mod= pd.DataFrame(swift.apply(lambda row: Distance_mod_cor(row['host_velocity'], row['host_vel_err']) if pd.notna(row['host_velocity']) else Dist_mod_empty(row['host_velocity'], row['host_vel_err']), axis=1))
+swift= pd.concat([swift,swiftDist_mod], axis=1, sort=False)
 
 #saves previous and new swift data to new csv---------------------------------
-swift.to_csv('SwiftSNweblist.csv', index= False)
+swift=swift.fillna('')
+swift.to_csv('TestSwiftSNweblist.csv', index= False)
 
 done= True
