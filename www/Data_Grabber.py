@@ -69,7 +69,7 @@ def scrapeValues(soup):
         vels = [Hvals[0],Hvals[1],VGSVals[0],VGSVals[1]]
         return vels
     except: 
-        vels = ['','','','']
+        vels = [np.nan,np.nan,np.nan,np.nan]
         return vels
 
 def get_coords(gals):
@@ -92,7 +92,7 @@ def get_coords(gals):
             #print('\nSkipping',gals,'because it couldn\'t be found.')
             #start_coord= ''
         #else:
-            start_coord= ''
+            start_coord= np.nan
     #bar.finish()
     return(start_coord)
 
@@ -100,14 +100,14 @@ def coord_breakup(coord):
     """
         Breaks up a coordinate into its components
     """
-    if coord != '':
+    if pd.isna(coord) == True:
+        ra = np.nan
+        dec = np.nan
+        return ra, dec
+    else:
         ra = Angle(coord.ra.hour,unit = u.hour)
         dec = coord.dec
-        return(ra, dec)
-    else:
-         ra = ''
-         dec = ''
-         return(ra, dec)
+        return ra, dec
 
 
 def Redshift(soup):
@@ -123,7 +123,7 @@ def Redshift(soup):
         redshift = redshift.split(" +",1)[0].strip(' ')
         return(redshift)
     except:
-        redshift = ''
+        redshift = np.nan
         return redshift
    
 
@@ -136,7 +136,7 @@ def Morphology(soup):
         morphology = (morphology.split(": ",4)[4]).rstrip()
         return morphology
     except:
-        morphology = ''
+        morphology = np.nan
         return morphology
 
 
@@ -151,7 +151,7 @@ def LatLong(soup):
  
         return long, lat
     except:
-        long, lat= '',''
+        long, lat= np.nan,np.nan
         return long, lat  
 
         
@@ -274,26 +274,68 @@ swift= swift.fillna(swiftAV)
 
 
 #gathers data about host galaxy ---------------------------------------------
-def AllHostData(HostName):
-    if HostName is not str(''):
-        ra,dec= coord_breakup(get_coords(HostName))
-        gal_link=getLink(HostName)
-    
-        long, lat= LatLong(gal_link)
-        red, morph= Redshift(gal_link), str(Morphology(gal_link))
-        vels= scrapeValues(gal_link)
-    else:
-        ra, dec, long, lat, red, morph= '','','','','',''
-        vels= ['','','','']
-    return pd.Series({'HostRa':ra, 'HostDec':dec, 'Long':long, 'Lat':lat, \
-                      'Redshift':red, 'Morphology':morph, 'V (Helio)':vels[0],\
-                      'VError':vels[1], 'VGS':vels[2], 'VGSError':vels[3]})
-        
-hostdata_names= ["HostRa", "HostDec", "Long", "Lat", "Redshift", "Morphology", "V(Helio)", "VError", "VGS", "VGSError"]
 
-if sum(swift.columns.isin(hostdata_names))!= 10:
-    swiftHostData= pd.DataFrame(swift.apply(lambda row: AllHostData(row['HostName']), axis=1))
-    swift= pd.concat([swift,swiftHostData], axis=1, sort=False)
+def AllHostData():
+    def host_coords(HostName):
+        ra,dec= coord_breakup(get_coords(HostName))
+        return ra,dec
+    def host_coords_empty(HostName):
+        ra,dec= np.nan, np.nan
+        return ra, dec
+    
+    def host_lat_long(HostName):
+        gal_link=getLink(HostName)
+        long, lat= LatLong(gal_link)
+        return(long, lat)
+    def host_lat_long_empty(HostName):
+        long, lat=np.nan, np.nan
+        return long, lat
+    
+    def redshift(HostName):
+        gal_link=getLink(HostName)
+        red= Redshift(gal_link)
+        return red
+    def redshift_empty(HostName):
+        red= np.nan
+        return red
+    
+    def morphology(HostName):
+        gal_link=getLink(HostName)
+        morph= Morphology(gal_link)
+        return morph
+    def morphology_empty(HostName):
+        morph= np.nan
+        return morph
+    
+    def velocities(HostName):
+        gal_link=getLink(HostName)
+        vels= scrapeValues(gal_link)
+        return(vels)
+    def velocities_empty(HostName):
+        vels= np.nan, np.nan, np.nan, np.nan
+        return(vels)
+    
+    coord= swift.apply(lambda row: host_coords(row['HostName']) if pd.notna(row['HostName']) and pd.isna(row['HostRa']) else host_coords_empty(row['HostName']), axis=1)
+    
+    lon_lat= swift.apply(lambda row: host_lat_long(row['HostName']) if pd.notna(row['HostName']) and pd.isna(row['Long']) else host_lat_long_empty(row['HostName']), axis=1)
+    
+    reds= swift.apply(lambda row: redshift(row['HostName']) if pd.notna(row['HostName']) and pd.isna(row['Redshift']) else redshift_empty(row['HostName']), axis=1)
+    
+    morp= swift.apply(lambda row: morphology(row['HostName']) if pd.notna(row['HostName']) and pd.isna(row['Morphology']) else morphology_empty(row['HostName']), axis=1)
+    
+    hvels= swift.apply(lambda row: velocities(row['HostName']) if pd.notna(row['HostName']) and pd.isna(row['host_velocity']) else velocities_empty(row['HostName']), axis=1)
+    
+    
+    
+    return pd.Series({'HostRa':coord[0], 'HostDec':coord[1], 'Long':lon_lat[0], 'Lat':lon_lat[1], \
+                      'Redshift':reds, 'Morphology':morp, 'host_velocity':hvels[0],\
+                      'host_vel_err':hvels[1], 'host_vel_corr':hvels[2], 'host_vel_corr_err':hvels[3]})
+        
+#hostdata_names= ["HostRa", "HostDec", "Long", "Lat", "Redshift", "Morphology", "V(Helio)", "VError", "VGS", "VGSError"]
+
+#if sum(swift.columns.isin(hostdata_names))!= 10:
+swiftHostData= pd.DataFrame(AllHostData())
+swift= swift.fillna(swiftHostData)
     
 def Dist_mod_empty(hv, hverr):
      distance_mod_cor= np.nan
@@ -313,7 +355,7 @@ def Distance_mod_cor(hv, hv_err):
     return pd.Series({'Dist_mod_cor': distance_mod_cor, 'Dist_mod_cor_err': distance_mod_cor_err})
 
 swiftDist_mod= pd.DataFrame(swift.apply(lambda row: Distance_mod_cor(row['host_velocity'], row['host_vel_err']) if pd.notna(row['host_velocity']) else Dist_mod_empty(row['host_velocity'], row['host_vel_err']), axis=1))
-swift= pd.concat([swift,swiftDist_mod], axis=1, sort=False)
+swift= swift.fillna(swiftDist_mod)
 
 #saves previous and new swift data to new csv---------------------------------
 swift=swift.fillna('')
