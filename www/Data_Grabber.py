@@ -6,14 +6,14 @@ Created on Wed Oct  7 12:14:39 2020
 """ 
 import requests
 import json
-import pandas as pd #for dataframes
+import pandas as pd
 import numpy as np
 import math
 import sys
 import itertools
 import threading
 import time
-import astropy.units as u
+from astropy import units as u
 from astroquery.irsa_dust import IrsaDust
 from astropy.coordinates import Angle,SkyCoord
 from astropy.coordinates.name_resolve import NameResolveError
@@ -25,7 +25,7 @@ def animate():
     for c in itertools.cycle(['|', '/', '-', '\\']):
         if done:
             break
-        sys.stdout.write('\rloading ' + c)
+        sys.stdout.write('\rUpdating Now! ' + c)
         sys.stdout.flush()
         time.sleep(0.1)
     print(chr(27) + "[2J")
@@ -33,7 +33,10 @@ def animate():
 
 
 def getLink(name):
-    
+    '''
+        Grabs the link from this site for the Host name of supernovae in CSV,
+        returns the parsed page
+    '''
     try:
         link = "http://ned.ipac.caltech.edu/cgi-bin/nph-objsearch?"
         inputs = {'objname': name,
@@ -56,8 +59,12 @@ def getLink(name):
         soup = ''
         return soup
 
+'''
+    Takes parsed page from getlink and searches for all velocites listed below
+    then returns the data.
+'''
 def scrapeValues(soup):
-	#----------Get Velocities----------#
+	
     try:
         soup = soup.find("a", attrs={'name':'DerivedValues_0'})
         velocities = soup.next_sibling.next_sibling.next_sibling.find("pre")
@@ -112,7 +119,9 @@ def coord_breakup(coord):
 
 
 def Redshift(soup):
-
+    '''
+        Takes parsed page from getlink and searches for redshift then returns that data
+    '''
     try:
         soup = soup.find("a", attrs={'name':'BasicData_0'})
         soup = soup.next_sibling.next_sibling.next_sibling.find("pre")
@@ -129,7 +138,9 @@ def Redshift(soup):
    
 
 def Morphology(soup):
-    
+    '''
+        Takes parsed page from getlink and searches for morphology then returns the data
+    '''
     try:
         soup = soup.find("a", attrs={'name':'BasicData_0'})
         morphology = soup.next_sibling.next_sibling.next_sibling.find("pre")
@@ -142,7 +153,9 @@ def Morphology(soup):
 
 
 def LatLong(soup):
-    
+    '''
+    Takes parsed page from getlink and searches for Latitude and Longitude then returns the data
+    '''
     try:
         soup = soup.find("a", attrs={'name':'Positions_0'})
         coords = soup.next_sibling.next_sibling.find("pre")
@@ -196,7 +209,7 @@ def getAVbest(inputcoordinates):
         source = 'S_F_2011'
 
     #print(AV, AVerr, source)
-    return (AV, AVerr, source);
+    return (AV, AVerr, source)
 
 def SNdates(SNname):
     '''
@@ -245,21 +258,10 @@ def jprint(obj):
     text = json.dumps(obj, sort_keys=True, indent=4)
     print(text)
  
-
 '''
-    Next 4 lines are important to animate function
+   Reads in SwiftSN CSV
 '''
-done = False
-print(chr(27) + "[2J")
-threader = threading.Thread(target=animate)
-threader.start()
-
-
-'''
-    Next 2 lines read in the supernovae csv and replaces anon, Anon, AnonHost, and empty values with nan values
-'''
-swift= pd.read_csv('NewSwiftSNweblist.csv')
-swift= swift.replace({r'anon',r'Anon',r'AnonHost', r'^\s*$'},np.nan, regex=True)
+swift= pd.read_csv('TestSwiftSNweblist.csv')
 
 
 '''
@@ -278,6 +280,18 @@ else:
         choice_2= input("Would you like to add another or are you done? (Y or Done):")
      print("Updating CSV now!")
       
+'''
+    Next 4 lines are important to animate function
+'''
+done = False
+print(chr(27) + "[2J")
+threader = threading.Thread(target=animate)
+threader.start()
+
+'''
+    Replaces all anon, Anon, AnonHost, and blanks with nan values
+'''
+swift= swift.replace({r'anon',r'Anon',r'AnonHost', r'^\s*$'},np.nan, regex=True)
 
 '''
     Requests data ra, dec, and host data of all supernovae in astrocats catalog
@@ -336,9 +350,9 @@ def SNDec(SNname):
     parse supernovae names into the 3 above functions and saves data to
     relavent columns in CSV
 '''
-swift["HostName"]= swift.apply(lambda row: SNHost(SNname=row['SNname']), axis=1)
-swift["SNra"]= swift.apply(lambda row: SNRa(SNname=row['SNname']), axis=1)
-swift["SNdec"]= swift.apply(lambda row: SNDec(SNname=row['SNname']), axis=1)
+swift["HostName"]= swift.apply(lambda row: SNHost(row['SNname']), axis=1)
+swift["SNra"]= swift.apply(lambda row: SNRa(row['SNname']), axis=1)
+swift["SNdec"]= swift.apply(lambda row: SNDec(row['SNname']), axis=1)
 
 
 
@@ -369,13 +383,17 @@ def GrabAVbest(Ra,Dec):
     if AV cell is empty and corresponding SNra cell is not runs SNra, SNdec data into GrabAVbest
     else runs it through AV_empty
 '''
-swiftAV= pd.DataFrame(swift.apply(lambda row: GrabAVbest(row['SNra'], row['SNdec']) if pd.isna(row['AV']) and pd.notna(row['SNra']) else AV_empty(row['SNra'], row['SNdec']), axis= 1))
+swiftAV= pd.DataFrame(swift.apply(lambda row: GrabAVbest(Ra=row['SNra'], Dec=row['SNdec']) if (pd.isna(row['AV']) and pd.notna(row['SNra'])) else AV_empty(Ra=row['SNra'], Dec=row['SNdec']), axis= 1))
 swift= swift.fillna(swiftAV) #Fills new data into corresponding nan space in CSV
 
 
 #gathers data about host galaxy ---------------------------------------------
 
 def AllHostData():
+    '''
+        Collects all data on Host names by running appropriate data through related 
+        function or empty function.
+    '''
     def host_coords(HostName):
         ra,dec= coord_breakup(get_coords(HostName))
         return ra,dec
@@ -385,11 +403,11 @@ def AllHostData():
     
     def host_lat_long(HostName):
         gal_link=getLink(HostName)
-        long, lat= LatLong(gal_link)
-        return(long, lat)
+        lon,lat= LatLong(gal_link)
+        return lon, lat
     def host_lat_long_empty(HostName):
-        long, lat=np.nan, np.nan
-        return long, lat
+        lon,lat= np.nan, np.nan
+        return lon, lat
     
     def redshift(HostName):
         gal_link=getLink(HostName)
@@ -410,100 +428,114 @@ def AllHostData():
     def velocities(HostName):
         gal_link=getLink(HostName)
         vels= scrapeValues(gal_link)
-        return(vels)
+        return vels
     def velocities_empty(HostName):
         vels= np.nan, np.nan, np.nan, np.nan
-        return(vels)
+        return vels
     
-    coord= swift.apply(lambda row: host_coords(row['HostName']) if pd.notna(row['HostName']) and pd.isna(row['HostRa']) else host_coords_empty(row['HostName']), axis=1)
-    
-    lon_lat= swift.apply(lambda row: host_lat_long(row['HostName']) if pd.notna(row['HostName']) and pd.isna(row['Long']) else host_lat_long_empty(row['HostName']), axis=1)
-    
-    reds= swift.apply(lambda row: redshift(row['HostName']) if pd.notna(row['HostName']) and pd.isna(row['Redshift']) else redshift_empty(row['HostName']), axis=1)
-    
-    morp= swift.apply(lambda row: morphology(row['HostName']) if pd.notna(row['HostName']) and pd.isna(row['Morphology']) else morphology_empty(row['HostName']), axis=1)
-    
-    hvels= swift.apply(lambda row: velocities(row['HostName']) if pd.notna(row['HostName']) and pd.isna(row['host_velocity']) else velocities_empty(row['HostName']), axis=1)
-    
-    
-    
-    return pd.Series({'HostRa':coord[0], 'HostDec':coord[1], 'Long':lon_lat[0], 'Lat':lon_lat[1], \
-                      'Redshift':reds, 'Morphology':morp, 'host_velocity':hvels[0],\
-                      'host_vel_err':hvels[1], 'host_vel_corr':hvels[2], 'host_vel_corr_err':hvels[3]})
+    '''
+        All 5 lines uses pandas apply and the lambda function with an if else staments inside. Checks if HostName cell is not empty
+        and checks specfic cell is empty for all cases. If so runs them through their corresponding functions if not runs them
+        through their corresponding empty functions
+    '''
+    coord= pd.Series(swift.apply(lambda row: host_coords(row['HostName']) if (pd.notna(row['HostName']) and pd.isna(row['HostRa'])) else host_coords_empty(row['HostName']), axis=1))
+    coord= pd.DataFrame(coord.tolist(), columns=['HostRa','HostDec'], index=coord.index)
+
+    lon_lat= pd.Series(swift.apply(lambda row: host_lat_long(row['HostName']) if (pd.notna(row['HostName']) and pd.isna(row['Long'])) else host_lat_long_empty(row['HostName']), axis=1))
+    lon_lat= pd.DataFrame(lon_lat.tolist(), columns=['Long','Lat'], index=lon_lat.index)
+    lon_lat= lon_lat.replace({r'^\s*$'}, np.nan, regex=True)
+
+    reds= pd.Series(swift.apply(lambda row: redshift(row['HostName']) if (pd.notna(row['HostName']) and pd.isna(row['Redshift'])) else redshift_empty(row['HostName']), axis=1))
+    reds= pd.DataFrame(reds.tolist(), columns=['Redshift'], index=reds.index)
+    reds= reds.replace({r'^\s*$'}, np.nan, regex=True)
+
+    morp= pd.Series(swift.apply(lambda row: morphology(row['HostName']) if (pd.notna(row['HostName']) and pd.isna(row['Morphology'])) else morphology_empty(row['HostName']), axis=1))
+    morp= pd.DataFrame(morp.tolist(), columns=['Morphology'], index=morp.index)
+    morp= morp.replace({r'^\s*$'}, np.nan, regex=True)
+
+    hvels= pd.Series(swift.apply(lambda row: velocities(row['HostName']) if (pd.notna(row['HostName']) and pd.isna(row['host_velocity'])) else velocities_empty(row['HostName']), axis=1))
+    hvels= pd.DataFrame(hvels.tolist(), columns=['host_velocity','host_vel_err', 'host_vel_corr', 'host_vel_corr_err'], index=hvels.index)
+
+    all_data= pd.concat([coord, lon_lat, reds, morp, hvels], axis=1)
+
+    return all_data
 
 '''
     Turns returned series from AllHostData into DataFrame then fills in data
     to corresponding nan spaces in CSV
 '''
-swiftHostData= pd.DataFrame(AllHostData())
-swift= swift.fillna(swiftHostData)
-    
-def Dist_mod_empty(hv, hverr):
-    ''' 
-        Returns empty nan series if condition is met
-    '''
-    distance_mod_cor= np.nan
-    distance_mod_cor_err= np.nan
-    return pd.Series({'Dist_mod_cor': distance_mod_cor, 'Dist_mod_cor_err': distance_mod_cor_err})
-def Distance_mod_cor(hv, hv_err):
-    '''
-        Takes host_velocity and host_vel_err data and returns distance modulous
-        and distance modulous err in a series
-    '''
-    h0 = 72.0
-    h0err = 5.0
+swiftAllHost= AllHostData()
+swift= swift.fillna(swiftAllHost)
 
-    try:
-        distance_mod_cor = 5*math.log(float(hv)/h0,10)+25 #hubble flow
-        distance_mod_cor_err = math.sqrt(((5*float(hv_err))/(float(hv)*math.log(10,10)))**2+((5*200)/(float(hv)*math.log(10,10)))**2 + ((5*5.0)/(h0*math.log(10,10)))**2)
-    except Exception:
-        distance_mod_cor= np.nan
-        distance_mod_cor_err= np.nan
-    
-    return pd.Series({'Dist_mod_cor': distance_mod_cor, 'Dist_mod_cor_err': distance_mod_cor_err})
+def Dist_mod():
+    def Dist_mod_empty(hv, hv_err):
+        ''' 
+            Returns empty nan series if condition is met
+        '''
+        distance_mod_cor, distance_mod_cor_err = np.nan, np.nan
+        return distance_mod_cor, distance_mod_cor_err
+    def Distance_mod_cor(hv, hv_err):
+        '''
+            Takes host_velocity and host_vel_err data and returns distance modulous
+            and distance modulous err in a series
+        '''
+        h0 = 72.0
+        h0err = 5.0
 
-'''
-    Pandas apply function and lambda function with embeded if else statment. 
-    If host_velocity cell is not nan then runs host_velocity, host_vel_err data
-    through Distance_mod_cor, else runs it through Dist_mod_empty
-'''
-swiftDist_mod= pd.DataFrame(swift.apply(lambda row: Distance_mod_cor(row['host_velocity'], row['host_vel_err']) if pd.notna(row['host_velocity']) else Dist_mod_empty(row['host_velocity'], row['host_vel_err']), axis=1))
+        try:
+            distance_mod_cor = 5*math.log(float(hv)/h0,10)+25 #hubble flow
+            distance_mod_cor_err = math.sqrt(((5*float(hv_err))/(float(hv)*math.log(10,10)))**2+((5*200)/(float(hv)*math.log(10,10)))**2 + ((5*5.0)/(h0*math.log(10,10)))**2)
+        except Exception:
+            distance_mod_cor, distance_mod_cor_err = np.nan, np.nan
+
+        return  distance_mod_cor, distance_mod_cor_err
+
+    dist= pd.Series(swift.apply(lambda row: Distance_mod_cor(row['host_velocity'], row['host_vel_err']) if pd.notna(row['host_velocity']) else Dist_mod_empty(row['host_velocity'], row['host_vel_err']), axis=1))
+    dist= pd.DataFrame(dist.tolist(), columns=['Dist_mod_cor', 'Dist_mod_cor_err'], index=dist.index)
+    dist= dist.replace({r'^\s*$'}, np.nan, regex=True)
+    return dist
+
+swiftDist_mod= Dist_mod()
 swift= swift.fillna(swiftDist_mod)
 
-def GrabSNdates_empty(SNname):
-    ''' 
-        Returns empty nan series if condition is met
-    '''
-    rec,disc,lnd= np.nan,np.nan,np.nan
-    return(pd.Series({'Date_Recieved': rec, 'Discover_date': disc, 'Last_non-detection_date': lnd}))
-def GrabSNdates(SNname):
-    '''
-        Takes supernovae names and runs them through SNdates and returns a
-        series with dates data
-    '''
-    try:
-        rec,disc,lnd= SNdates(SNname)
-    except Exception:
+def GrabDates():
+    def GrabSNdates_empty(SNname):
+        ''' 
+            Returns empty nan series if condition is met
+        '''
         rec,disc,lnd= np.nan,np.nan,np.nan
-        
-    return(pd.Series({'Date_Recieved': rec, 'Discover_date': disc, 'Last_non-detection_date': lnd}))
+        return rec,disc,lnd
+    def GrabSNdates(SNname):
+        '''
+            Takes supernovae names and runs them through SNdates and returns a
+            series with dates data
+        '''
+        try:
+            rec,disc,lnd= SNdates(SNname)
+        except Exception:
+            rec,disc,lnd= np.nan,np.nan,np.nan
+            
+        return rec,disc,lnd
 
-'''
+    '''
     Next 3 lines creates a supernovae list from our CSV except the SN in front of 
     most of the names are removed
-'''
-swift_temp= pd.DataFrame({'SNname':swift['SNname'], 'Discover':swift['Discover_date'], 'Last':swift['Last_non-detection_date']})
-rep= '|'.join(['SN'])
-swift_temp['SNname']= swift_temp['SNname'].str.replace(rep, '')
+    '''
+    swift_temp= pd.DataFrame({'SNname':swift['SNname'], 'Discover':swift['Discover_date'], 'Last':swift['Last_non-detection_date']})
+    rep= '|'.join(['SN'])
+    swift_temp['SNname']= swift_temp['SNname'].str.replace(rep, '')
 
-'''
-    Pandas apply function and lambda function with if else statment, If 
-    Discover and Last cell is nan runs SNname through GrabSNdates, else runs it
-    through GrabSNdates_empty. Then fills new data into corresponding nan spots
-    in CSV
-'''
-swiftDates= pd.DataFrame(swift_temp.apply(lambda row: GrabSNdates(row['SNname']) if pd.notna(row['SNname']) and (pd.isna(row['Discover']) or pd.isna(row['Last'])) else GrabSNdates_empty(row['SNname']), axis=1))
+    dates= pd.Series(swift_temp.apply(lambda row: GrabSNdates(SNname=row['SNname']) if pd.notna(row['SNname']) and (pd.isna(row['Discover']) or pd.isna(row['Last'])) else GrabSNdates_empty(SNname= row['SNname']), axis=1))
+    dates= pd.DataFrame(dates.tolist(), columns=['Date_Recieved', 'Discover_date', 'Last_non-detection_date'], index=dates.index)
+    dates= dates.replace({r'^\s*$'}, np.nan, regex=True)
+
+    return dates
+
+
+
+swiftDates= GrabDates()
 swift= swift.fillna(swiftDates)
+
 
 '''
     Fills nan values back with blanks then saves csv to either same file or 
