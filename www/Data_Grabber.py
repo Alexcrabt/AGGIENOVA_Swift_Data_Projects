@@ -176,7 +176,6 @@ def getAVbest(inputcoordinates):
     
     #inputcoordinates = sys.argv[1]
     testCoords = SkyCoord(inputcoordinates,frame='fk5')
-
     #print('\n-----\nReading input files...')
     inFile = 'Brown_Walker_table_1.dat'
     inTable = pd.read_csv(inFile,header=None,delimiter=' ')
@@ -199,9 +198,10 @@ def getAVbest(inputcoordinates):
         AV = next((item for item in correctedAV if item is not None),None)
         correctedAVerr = np.where(within,inTable.iloc[:,5],None) #get calculated val
         newAVerr = next((item for item in correctedAVerr if item is not None),None)
-        AVerr = math.sqrt((newAVerr)**2+(AV*0.1)**2)
+        AVerr = math.sqrt((int(float(newAVerr)))**2+(int(AV)*0.1)**2)
         sources=np.where(within,inTable.iloc[:,6],None)
         source = next((item for item in sources if item is not None),None)+",S_F_2011"
+        
     if not fix:
         AVtable = IrsaDust.get_extinction_table(testCoords,show_progress = False)
         AV=AVtable['A_SandF'][2]
@@ -261,7 +261,7 @@ def jprint(obj):
 '''
    Reads in SwiftSN CSV
 '''
-swift= pd.read_csv('TestSwiftSNweblist.csv')
+swift= pd.read_csv('NewSwiftSNweblist1.csv')
 
 
 '''
@@ -355,35 +355,36 @@ swift["SNra"]= swift.apply(lambda row: SNRa(row['SNname']), axis=1)
 swift["SNdec"]= swift.apply(lambda row: SNDec(row['SNname']), axis=1)
 
 
-
-def AV_empty(Ra, Dec):
-    ''' 
-        Returns empty nan values if condition is met
-    '''
-    AV, AVerr, AVsour= np.nan, np.nan, np.nan
-    return pd.Series({'AV': AV, 'AVerr': AVerr, 'AVsour': AVsour})
-def GrabAVbest(Ra,Dec):
-    '''
-        Takes Supernovae Ra,Dec data and puts in in the right format before
-        runing it through the getAVbest function, if there is an Exception
-        returns nan values
-    '''
-    ra_fix, dec_fix = Ra, Dec
-    ra_fix= ra_fix.replace("'", "")
-    combined= SkyCoord(ra=ra_fix, dec=dec_fix, unit=(u.hour, u.deg)).to_string('hmsdms')
-    try:
-        AV, AVerr, AVsour= getAVbest(combined)
-    except Exception:
+def AV_best():
+    def AV_empty(Ra, Dec):
+        ''' 
+            Returns empty nan values if condition is met
+        '''
         AV, AVerr, AVsour= np.nan, np.nan, np.nan
-    
-    return pd.Series({'AV': AV, 'AVerr': AVerr, 'AVsour': AVsour})
+        return AV, AVerr, AVsour
+    def GrabAVbest(Ra,Dec):
+        '''
+            Takes Supernovae Ra,Dec data and puts in in the right format before
+            runing it through the getAVbest function, if there is an Exception
+            returns nan values
+        '''
+        ra_fix, dec_fix = Ra, Dec
+        ra_fix= ra_fix.replace("'", "")
+        combined= SkyCoord(ra=ra_fix, dec=dec_fix, unit=(u.hour, u.deg)).to_string('hmsdms')
+        try:
+            AV, AVerr, AVsour= getAVbest(combined)
+        except Exception:
+            AV, AVerr, AVsour= np.nan, np.nan, np.nan
+        
+        return AV, AVerr, AVsour
 
-'''
-    Pandas apply function and lambda function with an embedded if else stament,
-    if AV cell is empty and corresponding SNra cell is not runs SNra, SNdec data into GrabAVbest
-    else runs it through AV_empty
-'''
-swiftAV= pd.DataFrame(swift.apply(lambda row: GrabAVbest(Ra=row['SNra'], Dec=row['SNdec']) if (pd.isna(row['AV']) and pd.notna(row['SNra'])) else AV_empty(Ra=row['SNra'], Dec=row['SNdec']), axis= 1))
+    avdata= pd.Series(swift.apply(lambda row: GrabAVbest(row['SNra'], row['SNdec']) if (pd.isna(row['AV']) and pd.notna(row['SNra'])) else AV_empty(row['SNra'], row['SNdec']), axis= 1))
+    avdata= pd.DataFrame(avdata.to_list(), columns=['AV', 'AVerr', 'AVsour'], index=avdata.index)
+    avdata= avdata.replace({r'^\s*$'}, np.nan, regex=True)
+
+    return avdata
+
+swiftAV= AV_best()
 swift= swift.fillna(swiftAV) #Fills new data into corresponding nan space in CSV
 
 
@@ -525,7 +526,7 @@ def GrabDates():
     rep= '|'.join(['SN'])
     swift_temp['SNname']= swift_temp['SNname'].str.replace(rep, '')
 
-    dates= pd.Series(swift_temp.apply(lambda row: GrabSNdates(SNname=row['SNname']) if pd.notna(row['SNname']) and (pd.isna(row['Discover']) or pd.isna(row['Last'])) else GrabSNdates_empty(SNname= row['SNname']), axis=1))
+    dates= pd.Series(swift_temp.apply(lambda row: GrabSNdates(row['SNname']) if pd.notna(row['SNname']) and (pd.isna(row['Discover']) or pd.isna(row['Last'])) else GrabSNdates_empty(row['SNname']), axis=1))
     dates= pd.DataFrame(dates.tolist(), columns=['Date_Recieved', 'Discover_date', 'Last_non-detection_date'], index=dates.index)
     dates= dates.replace({r'^\s*$'}, np.nan, regex=True)
 
