@@ -30,27 +30,27 @@ Much of the data linked from this website is under construction and will be avai
  	<tr>  <td style="vertical-align: top;"><br>
           </td>  <td colspan="6" rowspan="1" style="vertical-align: top; width:
             30px;"><br>
-          </td>  <tr> <td style="background-color: rgb(51, 51, 51); vertical-align:
+          </td>  <tr> <th style="background-color: rgb(51, 51, 51); vertical-align:
             top; text-align: center;" align="center"><span style="color:
               rgb(255, 255, 255);">No.</span><br>
-          </td>  <td style="vertical-align: top; color: rgb(255, 255, 255);
+          </th>  <th style="vertical-align: top; color: rgb(255, 255, 255);
             background-color: rgb(51, 51, 51); text-align: center;"
             align="center"><span style="font-weight: bold;">Supernova</span><br>
-          </td> <td style="vertical-align: top; background-color: rgb(51, 51,
+          </th> <th style="vertical-align: top; background-color: rgb(51, 51,
             51); text-align: center; font-weight: bold;" align="center"><span
               style="color: rgb(255, 255, 255); font-weight: normal;">Host
               Galaxy</span><br>
-          </td> <td style="vertical-align: top; background-color: rgb(51, 51,
+          </th> <th style="vertical-align: top; background-color: rgb(51, 51,
             51); text-align: center; font-weight: bold;" align="center"><span
               style="color: rgb(255, 255, 255); font-weight: normal;">Redshift</span><br>
-          </td> <td style="vertical-align: top; color: rgb(255, 255, 255);
+          </th> <th style="vertical-align: top; color: rgb(255, 255, 255);
             background-color: rgb(51, 51, 51); text-align: center;"
             align="center">Type&nbsp; <br>
-          </td>   <td style="vertical-align: top; color: rgb(255, 255, 255);
+          </th>   <th style="vertical-align: top; color: rgb(255, 255, 255);
             background-color: rgb(51, 51, 51); width: 105px; text-align:
             center;" align="center">Image&nbsp; |&nbsp; Plot&nbsp;
             |&nbsp; Data <br>
-          </td>  </tr>  <td valign="top"><br>
+          </th>  </tr>  <td valign="top"><br>
           </td>  <td valign="top"><br>
           </td> <td valign="top"><br>
           </td> <td valign="top"><br>

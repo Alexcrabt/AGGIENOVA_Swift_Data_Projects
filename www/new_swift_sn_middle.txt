@@ -9270,7 +9270,7 @@ href="https://github.com/pbrown801/SOUSA/blob/master/data/SN2016gfr_uvotB15.1.da
 
                         <td align="center" valign="top"><a 
 
-                        href="http://www.cbat.eps.harvard.edu/cbet/RecentCBETs.html">  Ib-pec </a><br> </td> 
+                        href="http://www.cbat.eps.harvard.edu/cbet/RecentCBETs.html"> ï¿½Ib-pec </a><br> </td> 
 
                          <td align="center" valign="top"><a 
 href="https://github.com/pbrown801/SOUSA/blob/master/images/SN2016frp_uvot.png"><img 
@@ -28626,6 +28626,6 @@ href="https://github.com/pbrown801/SOUSA/blob/master/data/SN2005am_uvotB15.1.dat
                         52px; height: 89px;" border="0" height="89" width="52"></a></td> 
 <td align="center" valign="top"><br> 
 
-                 </td>
+                     </td>
 
-                  </tr>
+                        </tr>

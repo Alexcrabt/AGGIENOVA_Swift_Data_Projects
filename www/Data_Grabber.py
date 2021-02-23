@@ -20,16 +20,6 @@ from astropy.coordinates.name_resolve import NameResolveError
 from bs4 import BeautifulSoup
 
 
-'''A fun function Tate had in his code'''
-def animate():
-    for c in itertools.cycle(['|', '/', '-', '\\']):
-        if done:
-            break
-        sys.stdout.write('\rUpdating Now! ' + c)
-        sys.stdout.flush()
-        time.sleep(0.1)
-    print(chr(27) + "[2J")
-    sys.stdout.write('\rDone!')
 
 
 def getLink(name):
@@ -167,8 +157,129 @@ def LatLong(soup):
     except:
         long, lat= np.nan,np.nan
         return long, lat  
+ 
 
+def SN_host_ra_dec():
+    def jprint(obj):
+        '''
+        Used to interpret the data from astrocats catalog
+        '''
+        text = json.dumps(obj, sort_keys=True, indent=4)
+        print(text)
+
+    '''
+    Requests data ra, dec, and host data of all supernovae in astrocats catalog
+    '''
+    sn_data= requests.get("https://api.astrocats.space/catalog/ra+dec+host?first")
+    sn_catalog= sn_data.json()
+
+    def SNHost(SNname):
+        ''' 
+            Checks if any CSV Supernova names are in astrocats catalog
+            If yes returns Host Name data, If no returns nan value
+        '''
         
+        if SNname in sn_catalog:
+            try:
+                host_names= sn_catalog[SNname]['host']['value']
+            except Exception:
+                host_names= np.nan
+        else:
+            host_names= np.nan
+
+        return host_names
+
+    def SNRa(SNname):
+        ''' 
+            Checks if any CSV Supernova names are in astrocats catalog
+            If yes returns Ra data, If no returns nan value
+        '''
+        
+        if SNname in sn_catalog:
+            try:
+                snra= "'%s" % sn_catalog[SNname]['ra']['value']
+            except Exception: 
+                snra= np.nan
+        else:
+            snra= np.nan
+        return snra
+
+    def SNDec(SNname):
+        ''' 
+            Checks if any CSV Supernova names are in astrocats catalog
+            If yes returns Dec data, If no returns nan value
+        '''
+        
+        if SNname in sn_catalog:
+            try:
+                sndec= sn_catalog[SNname]['dec']['value']
+            except Exception: #if no dec value input what is given for dec 
+                sndec= np.nan
+        else:
+            sndec= np.nan
+        return sndec
+        
+    '''
+        The next 3 lines uses pandas apply function and lambda function to quickly
+        parse supernovae names into the 3 above functions and saves data to
+        relavent columns in CSV
+    '''
+
+    swift["HostName"]= swift.apply(lambda row: SNHost(row['SNname']), axis=1)
+    swift["SNra"]= swift.apply(lambda row: SNRa(row['SNname']), axis=1)
+    swift["SNdec"]= swift.apply(lambda row: SNDec(row['SNname']), axis=1)
+
+def GrabSNtypes():
+    def SNtype(SNname):
+        '''
+            Takes Supernovae names from CSV and looks them up in the URL below
+            Then parses the page for the supernovae type and returns it
+        '''
+        url = "https://www.wis-tns.org/object/"+SNname
+
+        page = requests.get(url)
+        soup = BeautifulSoup(page.content, 'html.parser')
+
+        try:
+            sn_type= soup.find_all('div', class_= 'value')
+            sn_type= sn_type[1].get_text()
+            if str('---') == sn_type:
+                sn_type= np.nan
+            else:
+                sn_type= sn_type.replace('|'.join(['SN']), '')
+        except Exception:
+            sn_type= np.nan
+        ''' 
+        Also collects any Host names not found in SN_host_ra_dec() function
+        '''
+        try:
+            sn_host= soup.find_all('div', class_= 'field field-hostname')
+            sn_host= sn_host[0].span.next_sibling.text
+
+        except Exception:
+            sn_host= np.nan
+
+
+        return sn_host, sn_type
+
+    def SNtype_empty(SNname):
+            ''' 
+                Returns empty nan series if condition is met
+            '''
+            sn_type, sn_host= np.nan, np.nan
+            return sn_host, sn_type
+
+
+    swift_temp= pd.DataFrame({'SNname':swift['SNname'], 'HostName':swift['HostName'], 'type':swift['type']})
+    rep= '|'.join(['SN'])
+    swift_temp['SNname']= swift_temp['SNname'].str.replace(rep, '')
+
+    sntype= pd.Series(swift_temp.apply(lambda row: SNtype(row['SNname']) if pd.notna(row['SNname']) and (pd.isna(row['type']) or pd.isna(row['HostName'])) else SNtype_empty(row['SNname']), axis=1))
+    sntype= pd.DataFrame(sntype.tolist(), columns=['HostName', 'type'], index=sntype.index)
+    sntype= sntype.replace({r'^\s*$'}, np.nan, regex=True)
+    return sntype
+
+
 def getAVbest(inputcoordinates):
     '''
     Coordinates are input as a single string. Output is the recommended Av value for MW reddening, error, and reference
@@ -211,149 +322,6 @@ def getAVbest(inputcoordinates):
     #print(AV, AVerr, source)
     return (AV, AVerr, source)
 
-def SNdates(SNname):
-    '''
-        Takes Supernovae names from CSV and looks them up in the URL below
-        Then parses the page for relevant information to Supernova Discovery,
-        Last non-detection, and recieved date.
-    '''
-    url = "https://www.wis-tns.org/object/"+SNname+"/discovery-cert"
-
-    page = requests.get(url)
-    soup = BeautifulSoup(page.content, 'html.parser')
-    
-    sn_data= soup.find_all('span', class_='underline')
-    
-    rec_date= soup.find_all('em', class_='placeholder')[3].text
-    
-    disc_date= sn_data[0].find_next_sibling('span').text
-    disc_string= 'Discovery date: '
-
-    lnd_date= sn_data[1].find_next_sibling('span').text
-    lnd_string= 'Last non-detection date: '
-
-    if disc_string in disc_date:
-        disc_date= disc_date.replace(disc_string, '')
-    
-    if lnd_date in ['Archival info: DSS', 'Archival info: Other', 'Archival info: SDSS']:
-        lnd_date= ''
-        rec_date= "'" + rec_date
-        disc_date= "'" + disc_date
-        
-    else:
-        if lnd_string in lnd_date:
-            lnd_date= lnd_date.replace(lnd_string, '')
-        rec_date= "'" + rec_date
-        disc_date= "'" + disc_date
-        lnd_date= "'" + lnd_date
-
-    return(rec_date, disc_date, lnd_date)
-
-# create a formatted string of the Python JSON object-------------------------
-def jprint(obj):
-    '''
-        Used to interpret the data from astrocats catalog
-    '''
-    
-    text = json.dumps(obj, sort_keys=True, indent=4)
-    print(text)
- 
-'''
-   Reads in SwiftSN CSV
-'''
-swift= pd.read_csv('NewSwiftSNweblist1.csv')
-
-
-'''
-    This if-else statment asks if you want to update or add new supernovae values to CSV file
-'''
-choice_1= input("Would you like to add new supernovae names or just update current CSV? (SN or U):")
-if choice_1 == str('U'):
-    print("Updating CSV now!")
-else:
-     choice_2=""
-     while choice_2 != str('Done'):
-        SN=""
-        SN= input("Type supernova name:")
-        new_SN= pd.DataFrame([str(SN)], columns= ['SNname'])
-        swift= pd.concat([new_SN, swift]).reset_index(drop = True) 
-        choice_2= input("Would you like to add another or are you done? (Y or Done):")
-     print("Updating CSV now!")
-      
-'''
-    Next 4 lines are important to animate function
-'''
-done = False
-print(chr(27) + "[2J")
-threader = threading.Thread(target=animate)
-threader.start()
-
-'''
-    Replaces all anon, Anon, AnonHost, and blanks with nan values
-'''
-swift= swift.replace({r'anon',r'Anon',r'AnonHost', r'^\s*$'},np.nan, regex=True)
-
-'''
-    Requests data ra, dec, and host data of all supernovae in astrocats catalog
-'''
-sn_data= requests.get("https://api.astrocats.space/catalog/ra+dec+host?first")
-sn_catalog= sn_data.json()
-
-
-def SNHost(SNname):
-    ''' 
-        Checks if any CSV Supernova names are in astrocats catalog
-        If yes returns Host Name data, If no returns nan value
-    '''
-    
-    if SNname in sn_catalog:
-        try:
-            host_names= sn_catalog[SNname]['host']['value']
-        except Exception:
-            host_names= np.nan
-    else:
-        host_names= np.nan
-    return host_names
-
-def SNRa(SNname):
-    ''' 
-        Checks if any CSV Supernova names are in astrocats catalog
-        If yes returns Ra data, If no returns nan value
-    '''
-    
-    if SNname in sn_catalog:
-        try:
-            snra= "'%s" % sn_catalog[SNname]['ra']['value']
-        except Exception: 
-            snra= np.nan
-    else:
-        snra= np.nan
-    return snra
-
-def SNDec(SNname):
-    ''' 
-        Checks if any CSV Supernova names are in astrocats catalog
-        If yes returns Dec data, If no returns nan value
-    '''
-    
-    if SNname in sn_catalog:
-        try:
-            sndec= sn_catalog[SNname]['dec']['value']
-        except Exception: #if no dec value input what is given for dec 
-            sndec= np.nan
-    else:
-        sndec= np.nan
-    return sndec
-
-'''
-    The next 3 lines uses pandas apply function and lambda function to quickly
-    parse supernovae names into the 3 above functions and saves data to
-    relavent columns in CSV
-'''
-swift["HostName"]= swift.apply(lambda row: SNHost(row['SNname']), axis=1)
-swift["SNra"]= swift.apply(lambda row: SNRa(row['SNname']), axis=1)
-swift["SNdec"]= swift.apply(lambda row: SNDec(row['SNname']), axis=1)
-
 
 def AV_best():
     def AV_empty(Ra, Dec):
@@ -384,11 +352,6 @@ def AV_best():
 
     return avdata
 
-swiftAV= AV_best()
-swift= swift.fillna(swiftAV) #Fills new data into corresponding nan space in CSV
-
-
-#gathers data about host galaxy ---------------------------------------------
 
 def AllHostData():
     '''
@@ -461,12 +424,6 @@ def AllHostData():
 
     return all_data
 
-'''
-    Turns returned series from AllHostData into DataFrame then fills in data
-    to corresponding nan spaces in CSV
-'''
-swiftAllHost= AllHostData()
-swift= swift.fillna(swiftAllHost)
 
 def Dist_mod():
     def Dist_mod_empty(hv, hv_err):
@@ -496,27 +453,58 @@ def Dist_mod():
     dist= dist.replace({r'^\s*$'}, np.nan, regex=True)
     return dist
 
-swiftDist_mod= Dist_mod()
-swift= swift.fillna(swiftDist_mod)
+def SNdates(SNname):
+    '''
+        Takes Supernovae names from CSV and looks them up in the URL below
+        Then parses the page for relevant information to Supernova Discovery,
+        Last non-detection, and recieved date.
+    '''
+    url = "https://www.wis-tns.org/object/"+SNname+"/discovery-cert"
+
+    page = requests.get(url)
+    soup = BeautifulSoup(page.content, 'html.parser')
+    
+    sn_data= soup.find_all('span', class_='underline')
+    
+    disc_date= sn_data[0].find_next_sibling('span').text
+    disc_string= 'Discovery date: '
+
+    lnd_date= sn_data[1].find_next_sibling('span').text
+    lnd_string= 'Last non-detection date: '
+
+    if disc_string in disc_date:
+        disc_date= disc_date.replace(disc_string, '')
+    
+    if lnd_date in ['Archival info: DSS', 'Archival info: Other', 'Archival info: SDSS']:
+        lnd_date= ''
+        disc_date= "'" + disc_date
+        
+    else:
+        if lnd_string in lnd_date:
+            lnd_date= lnd_date.replace(lnd_string, '')
+        disc_date= "'" + disc_date
+        lnd_date= "'" + lnd_date
+
+    return(disc_date, lnd_date)
 
 def GrabDates():
     def GrabSNdates_empty(SNname):
         ''' 
             Returns empty nan series if condition is met
         '''
-        rec,disc,lnd= np.nan,np.nan,np.nan
-        return rec,disc,lnd
+        disc,lnd= np.nan,np.nan
+        return disc,lnd
     def GrabSNdates(SNname):
         '''
             Takes supernovae names and runs them through SNdates and returns a
             series with dates data
         '''
         try:
-            rec,disc,lnd= SNdates(SNname)
+            disc,lnd= SNdates(SNname)
         except Exception:
-            rec,disc,lnd= np.nan,np.nan,np.nan
+            disc,lnd= np.nan,np.nan
             
-        return rec,disc,lnd
+        return disc,lnd
 
     '''
     Next 3 lines creates a supernovae list from our CSV except the SN in front of 
@@ -527,23 +515,103 @@ def GrabDates():
     swift_temp['SNname']= swift_temp['SNname'].str.replace(rep, '')
 
     dates= pd.Series(swift_temp.apply(lambda row: GrabSNdates(row['SNname']) if pd.notna(row['SNname']) and (pd.isna(row['Discover']) or pd.isna(row['Last'])) else GrabSNdates_empty(row['SNname']), axis=1))
-    dates= pd.DataFrame(dates.tolist(), columns=['Date_Recieved', 'Discover_date', 'Last_non-detection_date'], index=dates.index)
+    dates= pd.DataFrame(dates.tolist(), columns=['Discover_date', 'Last_non-detection_date'], index=dates.index)
     dates= dates.replace({r'^\s*$'}, np.nan, regex=True)
 
     return dates
 
 
+def main():
+   
+    '''A fun function'''
+    def animate():
+        for c in itertools.cycle(['|', '/', '-', '\\']):
+            if done:
+                break
+            sys.stdout.write('\rUpdating Now! ' + c)
+            sys.stdout.flush()
+            time.sleep(0.1)
+        print(chr(27) + "[2J")
+        sys.stdout.write('\rDone!')
 
-swiftDates= GrabDates()
-swift= swift.fillna(swiftDates)
+
+    '''
+    Reads in SwiftSN CSV and makes swift global
+    '''
+    global swift
+    swift= pd.read_csv('NewSwiftSNweblist.csv')
 
 
-'''
-    Fills nan values back with blanks then saves csv to either same file or 
-    your pick of file name
-'''
-swift=swift.fillna('')
-swift.to_csv('TestSwiftSNweblist.csv', index= False)
+    '''
+        This if-else statment asks if you want to update or add new supernovae values to CSV file
+    '''
+    choice_1= input("Would you like to add new supernovae names or just update current CSV? (SN or U):")
+    if choice_1 == str('U'):
+        print("Updating CSV now!")
+    else:
+        choice_2=""
+        while choice_2 != str('Done'):
+            SN=""
+            SN= input("Type supernova name:")
+            new_SN= pd.DataFrame([str(SN)], columns= ['SNname'])
+            swift= pd.concat([new_SN, swift]).reset_index(drop = True) 
+            choice_2= input("Would you like to add another or are you done? (Y or Done):")
+        print("Updating CSV now!")
+        
+    '''
+        Next 4 lines are important to animate function
+    '''
+    done = False
+    print(chr(27) + "[2J")
+    threader = threading.Thread(target=animate)
+    threader.start()
 
-'''Last segment of animate function that makes the animation run'''
-done= True
+    '''
+        Replaces all anon, Anon, AnonHost, and blanks with nan values
+    '''
+    swift= swift.replace({r'anon',r'Anon',r'AnonHost', r'^\s*$'},np.nan, regex=True)
+
+    '''
+        Executes function that grabs host, ra, and dec data on supernovae
+    '''
+    SN_host_ra_dec()
+
+    '''
+        Executes function that grabs host and type data on supernovae
+    '''
+    swift= swift.fillna(GrabSNtypes())
+
+    '''
+        Executes function that grabs AV, AVerr, and source data on supernovae
+    '''
+    swift= swift.fillna(AV_best())
+
+    '''
+        Executes function that grabs lots of data on host galaxy of supernovae
+    '''
+    swift= swift.fillna(AllHostData())
+
+    '''
+        Executes function that calculates distance modulous data on supernovae
+    '''
+    swift= swift.fillna(Dist_mod())
+
+    '''
+        Executes function that grabs detection and last non detection dates on supernovae
+    '''
+    swift= swift.fillna(GrabDates())
+
+
+    '''
+        Fills nan values back with blanks then saves csv to either same file or 
+        your pick of file name
+    '''
+    swift=swift.fillna('')
+
+    swift.to_csv('NewSwiftSNweblist.csv', index= False)
+
+    '''Last segment of animate function that makes the animation run'''
+    done= True
+
+if __name__ == "__main__":  main()
+

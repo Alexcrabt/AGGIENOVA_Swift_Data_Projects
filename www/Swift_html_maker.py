@@ -197,8 +197,8 @@ end of template entry --> <tr>"""
     return text
 
 def printsnline(SNnamen, PSNn, SNname2n, galaxyn, redshiftn, typen, n): #creates new HTML code for swift_sn_middle.txt
-    owd= os.getcwd()
-    os.chdir('..')
+    #owd= os.getcwd()
+    #os.chdir('..')
 #-----------------data,images, and lcplots relative paths --------------------------------------------------------------------
 
     data_path= "data/"+SNnamen+"_uvotB15.1.dat"
@@ -252,7 +252,7 @@ def printsnline(SNnamen, PSNn, SNname2n, galaxyn, redshiftn, typen, n): #creates
                 
     
     textcomb= text + textend
-    os.chdir(owd)
+    #os.chdir(owd)
     return(textcomb)
 
 def bottomHTML(): #creates new HTML code for swift_sn_bottom.txt
@@ -372,19 +372,17 @@ function TypeFunction() {
 
     return(text)
 
-#writes top html text file
+
 swifttop= open('new_swift_sn_top.txt', 'w')
 swifttop.write(topHTML())
 swifttop.close()     
 
-#writes middle html text file
 swiftmid= open('new_swift_sn_middle.txt', 'w')
 for i in range(0,len(snname)):
     if snname[i].startswith(('in', '?', '#'),0,4) != True:
         swiftmid.write(printsnline(str(snname[i]),str(psn[i]),str(othersn[i]),str(host[i]),str(red[i]),str(sntype[i]), i+1))
 swiftmid.close
 
-#writes bottom html text file
 swiftbot= open('new_swift_sn_bottom.txt', 'w')
 swiftbot.write(bottomHTML())
 swiftbot.close()
