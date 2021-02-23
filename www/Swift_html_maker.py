@@ -398,7 +398,7 @@ html_m= mid.read()
 html_b= bott.read()
 
 #defines a path for the website HTML combined code
-path = os.path.abspath('SwiftSNWebsite.html')
+path = os.path.abspath('index.html')
 url = 'file://' + path
 
 #Runs all opened HTML .txt files in a browser
