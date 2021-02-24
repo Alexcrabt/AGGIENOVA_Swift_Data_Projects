@@ -545,7 +545,7 @@ def main():
     '''
         This if-else statment asks if you want to update or add new supernovae values to CSV file
     '''
-    choice_1= input("Would you like to add new supernovae names or just update current CSV? (SN or U):")
+    choice_1= input("Would you like to add new supernovae names or just update current CSV? (Type: SN or U):")
     if choice_1 == str('U'):
         print("Updating CSV now!")
     else:
@@ -555,7 +555,7 @@ def main():
             SN= input("Type supernova name:")
             new_SN= pd.DataFrame([str(SN)], columns= ['SNname'])
             swift= pd.concat([new_SN, swift]).reset_index(drop = True) 
-            choice_2= input("Would you like to add another or are you done? (Y or Done):")
+            choice_2= input("Would you like to add another or are you done? (Type: Y or Done):")
         print("Updating CSV now!")
         
     '''
