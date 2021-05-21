@@ -534,13 +534,7 @@ def main():
         print(chr(27) + "[2J")
         sys.stdout.write('\rDone!')
 
-
-    '''
-    Reads in SwiftSN CSV and makes swift global
-    '''
     global swift
-    swift= pd.read_csv('NewSwiftSNweblist.csv')
-
 
     '''
         This if-else statment asks if you want to update or add new supernovae values to CSV file
@@ -548,70 +542,147 @@ def main():
     choice_1= input("Would you like to add new supernovae names or just update current CSV? (Type: SN or U):")
     if choice_1 == str('U'):
         print("Updating CSV now!")
+
+        ''' 
+        This section soley updates the swift data, that is it checks for new data that is currently missing from the swift data.
+        '''
+
+        '''
+            Next 4 lines are important to animate function
+        '''
+        done = False
+        print(chr(27) + "[2J")
+        threader = threading.Thread(target=animate)
+        threader.start()
+
+        '''
+        Reads in SwiftSN CSV and makes swift global
+        '''
+        swift= pd.read_csv('NewSwiftSNweblist.csv')
+
+        '''
+            Replaces all anon, Anon, AnonHost, and blanks with nan values
+        '''
+        swift= swift.replace({r'anon',r'Anon',r'AnonHost', r'^\s*$'},np.nan, regex=True)
+
+        '''
+            Executes function that grabs host, ra, and dec data on supernovae
+        '''
+        SN_host_ra_dec()
+
+        '''
+            Executes function that grabs host and type data on supernovae
+        '''
+        swift= swift.fillna(GrabSNtypes())
+
+        '''
+            Executes function that grabs AV, AVerr, and source data on supernovae
+        '''
+        swift= swift.fillna(AV_best())
+
+        '''
+            Executes function that grabs lots of data on host galaxy of supernovae
+        '''
+        swift= swift.fillna(AllHostData())
+
+        '''
+            Executes function that calculates distance modulous data on supernovae
+        '''
+        swift= swift.fillna(Dist_mod())
+
+        '''
+            Executes function that grabs detection and last non detection dates on supernovae
+        '''
+        swift= swift.fillna(GrabDates())
+
+
+        '''
+            Fills nan values back with blanks then saves csv to either same file or 
+            your pick of file name
+        '''
+        swift=swift.fillna('')
+
+        swift.to_csv('NewSwiftSNweblist.csv', index= False)
+
+        '''Last segment of animate function that makes the animation run'''
+        done= True
+
     else:
+
+        '''
+        Because of how the functions are set up, in this section I renamed the swift dataframe to swift_merge so that
+        I could use the swift name for the dataframe for the inputed SNe Names, this way it updates the info on the
+        new names quicker.
+        '''
+        swift_merge= pd.read_csv('NewSwiftSNweblist.csv')
+
+        swift= pd.DataFrame(columns= swift_merge.columns)
+
         choice_2=""
+
         while choice_2 != str('Done'):
             SN=""
             SN= input("Type supernova name:")
             new_SN= pd.DataFrame([str(SN)], columns= ['SNname'])
-            swift= pd.concat([new_SN, swift]).reset_index(drop = True) 
-            choice_2= input("Would you like to add another or are you done? (Type: Y or Done):")
+            swift= pd.concat([new_SN, swift]).reset_index(drop = True)
+            choice_2= input("Press enter to input another name or type Done to start update! :")
         print("Updating CSV now!")
-        
-    '''
-        Next 4 lines are important to animate function
-    '''
-    done = False
-    print(chr(27) + "[2J")
-    threader = threading.Thread(target=animate)
-    threader.start()
 
-    '''
-        Replaces all anon, Anon, AnonHost, and blanks with nan values
-    '''
-    swift= swift.replace({r'anon',r'Anon',r'AnonHost', r'^\s*$'},np.nan, regex=True)
+        '''
+            Next 4 lines are important to animate function
+        '''
+        done = False
+        print(chr(27) + "[2J")
+        threader = threading.Thread(target=animate)
+        threader.start()
 
-    '''
-        Executes function that grabs host, ra, and dec data on supernovae
-    '''
-    SN_host_ra_dec()
+        '''
+            Executes function that grabs host, ra, and dec data on supernovae
+        '''
+        SN_host_ra_dec()
 
-    '''
-        Executes function that grabs host and type data on supernovae
-    '''
-    swift= swift.fillna(GrabSNtypes())
+        '''
+            Executes function that grabs host and type data on supernovae
+        '''
+        swift= swift.fillna(GrabSNtypes())
 
-    '''
-        Executes function that grabs AV, AVerr, and source data on supernovae
-    '''
-    swift= swift.fillna(AV_best())
+        '''
+            Executes function that grabs AV, AVerr, and source data on supernovae
+        '''
+        swift= swift.fillna(AV_best())
 
-    '''
-        Executes function that grabs lots of data on host galaxy of supernovae
-    '''
-    swift= swift.fillna(AllHostData())
+        '''
+            Executes function that grabs lots of data on host galaxy of supernovae
+        '''
+        swift= swift.fillna(AllHostData())
 
-    '''
-        Executes function that calculates distance modulous data on supernovae
-    '''
-    swift= swift.fillna(Dist_mod())
+        '''
+            Executes function that calculates distance modulous data on supernovae
+        '''
+        swift= swift.fillna(Dist_mod())
 
-    '''
-        Executes function that grabs detection and last non detection dates on supernovae
-    '''
-    swift= swift.fillna(GrabDates())
+        '''
+            Executes function that grabs detection and last non detection dates on supernovae
+        '''
+        swift= swift.fillna(GrabDates())
 
 
-    '''
-        Fills nan values back with blanks then saves csv to either same file or 
-        your pick of file name
-    '''
-    swift=swift.fillna('')
+        '''
+            Fills nan values back with blanks then saves csv to either same file or 
+            your pick of file name
+        '''
 
-    swift.to_csv('NewSwiftSNweblist.csv', index= False)
+        ''' 
+        Merges the updated new SNe name info with the rest of the swift data
+        '''
+        swift= pd.concat([swift, swift_merge]).reset_index(drop = True)
 
-    '''Last segment of animate function that makes the animation run'''
-    done= True
+        swift=swift.fillna('')
+
+        swift.to_csv('NewSwiftSNweblist.csv', index= False)
+
+        '''Last segment of animate function that makes the animation run'''
+        done= True
 
 if __name__ == "__main__":  main()
 
