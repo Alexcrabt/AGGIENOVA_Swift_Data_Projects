@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-"""
+'''
 Created on Sun Jan 24 12:54:40 2021
 
-@author: Acrab
-"""
+@author: Alexander Crabtree
+            acrabtree15@gmail.com
+'''
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup

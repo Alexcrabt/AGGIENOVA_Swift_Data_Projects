@@ -1,3 +1,7 @@
+'''
+@author: Alexander Crabtree
+            acrabtree15@gmail.com
+'''
 import pandas as pd
 import numpy as np
 

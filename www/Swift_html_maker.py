@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-"""
+'''
 Created on Thu Nov  5 17:17:46 2020
 
 @author: Alexander Crabtree
-"""
+            acrabtree15@gmail.com
+'''
 import numpy as np
 import pandas as pd
 import os

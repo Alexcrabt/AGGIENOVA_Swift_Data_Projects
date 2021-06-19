@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-"""
+'''
 Created on Wed Oct  7 12:14:39 2020
 
 @author: Alexander Crabtree
-""" 
+            acrabtree15@gmail.com
+'''
 import requests
 import json
 import pandas as pd
