@@ -348,11 +348,11 @@ def main():
                         dict(
                             label= "UVW2",
                             method= "update",
-                            args= [{'visible': w2}, {'title': "Supernovae " + str(SNtype)+ " UVW2  Band Light Curves"}]),
+                            args= [{'visible': w2}, {'title': "Supernovae " + str(SNtype)+ " UVW2 Band Light Curves"}]),
                         dict(
                             label= "UVM2",
                             method="update",
-                            args=[{'visible': m2}, {'title': "Supernovae " + str(SNtype)+ " UVM2  Band Light Curves"}]),
+                            args=[{'visible': m2}, {'title': "Supernovae " + str(SNtype)+ " UVM2 Band Light Curves"}]),
                         dict(
                             label= "UVW1",
                             method="update",
@@ -368,7 +368,7 @@ def main():
                         dict(
                             label= "V",
                             method="update",
-                            args=[{'visible': v}, {'title': "Supernovae " + str(SNtype)+ " V  Band Light Curves"}])
+                            args=[{'visible': v}, {'title': "Supernovae " + str(SNtype)+ " V Band Light Curves"}])
                     ]
                 )
             ),
@@ -393,7 +393,7 @@ def main():
     ]
 )
 
-    fig.write_html("SN_type"+SNtype+"_Light_Curve.html")
+    fig.write_html("SN_type_"+SNtype+"_Light_Curve.html")
 
     fig.show()
     
