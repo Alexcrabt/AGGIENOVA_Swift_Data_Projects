@@ -344,7 +344,7 @@ def main():
                     [   dict(
                             label= "All",
                             method="update",
-                            args=[{'visible':[True, True]}]),
+                            args=[{'visible':[True, True]}, {'title': "All Supernovae " + str(SNtype)+ " Band Light Curves"}]),
                         dict(
                             label= "UVW2",
                             method= "update",
