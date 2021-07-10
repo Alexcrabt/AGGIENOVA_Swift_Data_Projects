@@ -676,7 +676,7 @@ def main():
         ''' 
         Merges the updated new SNe name info with the rest of the swift data
         '''
-        swift= pd.concat([swift, swift_merge]).reset_index(drop = True)
+        swift= pd.concat([swift, swift_merge], sort=False).reset_index(drop = True)
 
         swift=swift.fillna('')
 
