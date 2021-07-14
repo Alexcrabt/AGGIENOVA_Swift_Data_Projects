@@ -16,6 +16,10 @@ from itertools import cycle
 def Data_Grapher(snname, dist_mod, type):
 
     def File_Data(data, search):
+        ''' 
+        Uses filter name to search for mjd, mag, and magerr data for specific filter
+        from the data found.
+        '''
         mjd_temp= []
         mag_temp= []
         magerr_temp= []
@@ -26,12 +30,18 @@ def Data_Grapher(snname, dist_mod, type):
                 mag_temp.append(sublist[2])
                 magerr_temp.append(sublist[3])
 
+        ''' 
+        If the mjd or mag lists are empty returns not enough data.
+        '''
         if not len(mjd_temp) or not len(mag_temp):
             raise print("Not enough " +search+" data on " + snname)
         else:
             return mjd_temp, mag_temp, magerr_temp
     
     def Null_Filter(mjd_temp, mag_temp, magerr_temp):
+        ''' 
+        Takes mjd, mag, and magerr and filters out NULL values.
+        '''
         mjd= []
         mag= []
         magerr= []
@@ -45,12 +55,18 @@ def Data_Grapher(snname, dist_mod, type):
                 mag.append(mag_temp[i])
                 magerr.append(magerr_temp[i])
         
+        ''' 
+        If mjd or mag lists are empty after filtering our NULL values return not enough data.
+        '''
         if not len(mjd) or not len(mag):
             raise print("Not enough data on " + snname)
         else:
             return mjd, mag, magerr
 
     def Value_Converter(mjd, mag, magerr, dist_mod):
+        ''' 
+        Converts mjd to days_since_detection, mag to absolute_mag
+        '''
         days_since_detection= []
         absolute_mag= []
         final_magerr= []
@@ -60,12 +76,18 @@ def Data_Grapher(snname, dist_mod, type):
             absolute_mag.append(float(mag[j]) - dist_mod)
             final_magerr.append(abs(float(magerr[j])))
 
+        ''' 
+        If days_since_detection or absolute_mag are nan lists it returns not enough data
+        '''
         if np.isnan(days_since_detection).all() == True or np.isnan(absolute_mag).all() == True:
             raise print("Not enough data on  " + snname)
         else:
             return days_since_detection, absolute_mag, final_magerr
 
     def dat_w2(dataContent, search1):
+        ''' 
+        Collects UVW2 filter data then creates plotly trace for it and returns it.
+        '''
         try:
             mjd_w2, mag_w2, magerr_w2= File_Data(dataContent, search1) 
 
@@ -84,6 +106,9 @@ def Data_Grapher(snname, dist_mod, type):
             return "NULL"
 
     def dat_m2(dataContent, search2):
+        ''' 
+        Collects UVM2 filter data then creates plotly trace for it and returns it.
+        '''
         try:
             mjd_m2, mag_m2, magerr_m2= File_Data(dataContent, search2)
 
@@ -102,6 +127,9 @@ def Data_Grapher(snname, dist_mod, type):
             return "NULL"
     
     def dat_w1(dataContent, search3):
+        ''' 
+        Collects UVW1 filter data then creates plotly trace for it and returns it.
+        '''
         try:
             mjd_w1, mag_w1, magerr_w1= File_Data(dataContent, search3)
 
@@ -120,6 +148,9 @@ def Data_Grapher(snname, dist_mod, type):
             return "NULL"
 
     def dat_u(dataContent, search4):
+        ''' 
+        Collects U filter data then creates plotly trace for it and returns it.
+        '''
         try:
             mjd_u, mag_u, magerr_u= File_Data(dataContent, search4)
 
@@ -138,6 +169,9 @@ def Data_Grapher(snname, dist_mod, type):
             return "NULL"
 
     def dat_b(dataContent, search5):
+        ''' 
+        Collects B filter data then creates plotly trace for it and returns it.
+        '''
         try:
             mjd_b, mag_b, magerr_b= File_Data(dataContent, search5)
 
@@ -156,6 +190,9 @@ def Data_Grapher(snname, dist_mod, type):
             return "NULL"
 
     def dat_v(dataContent, search6):
+        ''' 
+        Collects V filter data then creates plotly trace for it and returns it.
+        '''
         try:
             mjd_v, mag_v, magerr_v= File_Data(dataContent, search6)
 
@@ -173,6 +210,10 @@ def Data_Grapher(snname, dist_mod, type):
             
             return "NULL"
 
+    '''
+    Trys to pull data on supernovae given from data file, if it doesn't exist
+    returns that the supernovae isn't in our files.
+    '''
     try:
         dataContent= [i.strip().split() for i in open("./data/"+snname+ "_uvotB15.1.dat")]
     except:
@@ -185,7 +226,9 @@ def Data_Grapher(snname, dist_mod, type):
     search4= 'U'
     search5= 'B'
     search6= 'V'
-
+    '''
+    Runs the data on the given supernoava and filter name through the appropriate funcions.
+    '''
     w2= dat_w2(dataContent, search1)
     m2= dat_m2(dataContent, search2)
     w1= dat_w1(dataContent, search3)
@@ -193,9 +236,16 @@ def Data_Grapher(snname, dist_mod, type):
     b= dat_b(dataContent, search5)
     v= dat_v(dataContent, search6)
 
+    ''' 
+    Returns trace data on all 6 filters
+    '''
     return w2, m2, w1, u, b, v
 
 def BtnBoolList(num):
+    '''
+    Depeding on the filter it converts the numbers from numList to 0 or 1 then
+    converts that to a bool value and returns the filter bool lists.
+    '''
     w2= []
     m2= []
     w1= []
@@ -254,21 +304,32 @@ def BtnBoolList(num):
     return w2, m2, w1, u, b, v
 
 def main():
+    #Makes the Supernovae type global for easy usage
     global SNtype
 
+    #Reads in SwiftSNweblist
     swift= pd.read_csv("NewSwiftSNweblist.csv")
 
+    #Takes given Supernovae type input
     SNtype= input("What type supernovae do you want to plot? (Press ENTER if you want to graph all):")
 
+    #Sets plotly background to dark. plotly_white gives white backgound
     pio.templates.default = "plotly_dark"
     
     fig= go.Figure()
 
+    #Uses pandas and lamda function to parse necessary swift data columns through Data_Grapher function
     data= swift.apply(lambda row: Data_Grapher(row['SNname'], row['Dist_mod_cor'], row['type']), axis=1).to_list()
     #print(data)
 
     numList=[]
 
+    '''
+    These for-loops assign numbers to different supernovae traces depending on filter type.
+    This is for the purpose of converting to bool values to use in plotly buttons that manage
+    which traces are visable when you click on them.
+    
+    '''
     for i in range(len(data)):
         if data[i][0]=="NULL":
             continue
@@ -311,8 +372,13 @@ def main():
             fig.add_trace(data[i][5])
             numList.append("6")
 
+    '''
+    Converts the nuumbers in the numList to bool values and retruns
+    list of bool values dependent on filter.
+    '''
     w2, m2, w1, u, b, v= BtnBoolList(numList)
     
+    #If no SNtype given set title to a specific title
     if SNtype == "":
         fig.update_layout(title= "All Supernovae Types Band Light Curves", 
                     xaxis_title="Days since first detection", yaxis_title="Absolute Magnitude", legend_title= "Supernovae")
@@ -320,23 +386,32 @@ def main():
         fig.update_layout(title= "All Supernovae " + str(SNtype)+ " Band Light Curves", 
                     xaxis_title="Days since first detection", yaxis_title="Absolute Magnitude", legend_title= "Supernovae" + " Type "+ str(SNtype)+"'s")
 
+    #reverses y axis so that absolute magnitude is displayed properly
     fig['layout']['yaxis']['autorange'] = "reversed"
 
+    #cycles through diffferent line types from this list
     line_styles_names = ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot']
     line_styles = cycle(line_styles_names)
 
+    #pulls out specific symbol types from plotly symbol list then cycle through those symbols
     symbols = [x for x in SymbolValidator().values[::-2] if not isinstance(x, int)]
     symbols= [i for i in symbols if not i.isdigit()]
     del symbols[8:12]
-
     symbols_names = list(set([i.replace("-thin", "") for i in symbols]))
     markers = cycle(symbols_names)
 
+    #once one line and marker type is used on a trace, cycle to next one
     for d in fig.data:
         d.line["dash"] = next(line_styles)
         d.marker.symbol = next(markers)
         d.marker.size = 8
 
+    '''
+    Sets the drop down buttons for the different filters. 
+    The filter bool lists are used here to determine which traces are visible or not depending on button clicked.
+
+    Error buton is also defined here, it makes error bars visible or not depending on if it is clicked.
+    '''
     fig.update_layout(
         updatemenus=[
             dict(
@@ -385,7 +460,7 @@ def main():
             )
         ]
     )
-
+    #Adds the dropdown button text
     fig.update_layout(
     annotations=[
         dict(text="Filters:", font_size=15, height=32, showarrow=False,
@@ -393,6 +468,7 @@ def main():
     ]
 )
 
+    #Saves graph as html file with this name format
     fig.write_html("SN_type_"+SNtype+"_Light_Curve.html")
 
     fig.show()
