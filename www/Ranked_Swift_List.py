@@ -30,7 +30,7 @@ def main():
     '''
     Saves relavent swift columns to a new dataframe
     '''
-    ranList= pd.DataFrame({"DatPoints": swift['UVM2_DatPoints'], "SNname": swift['SNname'],"SNtype": swift['type'], "Disc_Date": swift['Discover_date'], "Expl_Date":swift['Explosion_Date']})
+    ranList= pd.DataFrame({"DatPoints": swift['UVW2_DatPoints'], "SNname": swift['SNname'],"SNtype": swift['type'], "Disc_Date": swift['Discover_date'], "Expl_Date":swift['Explosion_Date']})
     ranList.drop(ranList.head(1).index, inplace=True)#Drops first row since it didn't have any info
     ranList.reset_index(drop=True, inplace=True)#Resets the index after dropping first row
 
