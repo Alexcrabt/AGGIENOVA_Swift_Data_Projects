@@ -56,7 +56,7 @@ def Data_Grapher(snname, dist_mod, type):
                 magerr.append(magerr_temp[i])
         
         ''' 
-        If mjd or mag lists are empty after filtering our NULL values return not enough data.
+        If mjd or mag lists are empty after filtering or all NULL values return not enough data.
         '''
         if not len(mjd) or not len(mag):
             raise print("Not enough data on " + snname)
