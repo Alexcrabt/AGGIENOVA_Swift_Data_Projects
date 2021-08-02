@@ -11,16 +11,16 @@ import pandas as pd
 import numpy as np
 from itertools import cycle
 
-def data_Grapher():
+def data_Grapher(snname, dist_mod):
     def sn_Data(data):
         '''
         Grabs all data on the supernovae and returns it as a dataframe.
         '''
-        sndata= pd.DataFrame(columns= ['filter', 'mjd', 'mag', 'magerr', 'exposure', 'elapse'])
+        sndata= pd.DataFrame(columns= ['filter', 'mjd', 'mag', 'magerr'])
 
         for sublist in data:
             if not sublist[0] == '#':
-                sndata= sndata.append({'filter': sublist[0], 'mjd': sublist[1], 'mag': sublist[2], 'magerr': sublist[3],'exposure': sublist[10], 'elapse': sublist[11]}, ignore_index=True)
+                sndata= sndata.append({'filter': sublist[0], 'mjd': sublist[1], 'mag': sublist[2], 'magerr': sublist[3]}, ignore_index=True)
 
         sndata=sndata.sort_values(by="mjd", ascending= True, na_position='last')
         sndata.reset_index(drop=True, inplace=True)
@@ -84,60 +84,74 @@ def data_Grapher():
         ''' 
         If mjd or mag lists are empty after filtering or all NULL values return not enough data.
         '''
-        if not len(mjd1) or not len(mag1) or not len(mjd2) or not len(mag2):
+        if not len(mjd1) or not len(mag1):
+            raise print("Not enough data on " + snname)
+        elif not len(mjd2) or not len(mag2):
             raise print("Not enough data on " + snname)
         else:
             return mjd1, mag1, magerr1, mjd2, mag2, magerr2
 
     def mjd_Check(mjd1, mag1, magerr1, mjd2, mag2, magerr2):
         '''
-        Checks if the mjd of bothe filters are in a certain ranage of each other, if they are
+        Checks if the mjd of both filters are in a certain range of each other, if they are
         it saves all data (mjd, mag, magerr) for them and returns them. 
         '''
-        dt=.1500
-        mjd1_s= [mjd-dt for mjd in mjd1]
-        mjd1_p= [mjd+dt for mjd in mjd1]
+
+        if not dt=="":
+            mjd1_s= [mjd-float(dt) for mjd in mjd1]
+            mjd1_p= [mjd+float(dt) for mjd in mjd1]
+                
+                #mjd_check= [min(mjd1_s, mjd1_p) < mjd2 < max(mjd1_s, mjd1_p) for mjd1_s, mjd1_p, mjd2 in zip(mjd1_s, mjd1_p, mjd2)]
+                #_c stands for checked
+            mjd_c=[]
+            mag1_c= []
+            magerr1_c= []
+
+            mag2_c= []
+            magerr2_c=[]
+                
+            for i in range(len(mjd1)):
+                for j in range(len(mjd2)):
+                    if min(mjd1_s[i], mjd1_p[i]) < mjd2[j] < max(mjd1_s[i], mjd1_p[i]):
+                        mjd_c.append(mjd1[i])
+                        mag1_c.append(mag1[i])
+                        magerr1_c.append(magerr1[i])
+
+                        mag2_c.append(mag2[j])
+                        magerr2_c.append(magerr2[j])
+                    else:
+                        continue
+            return mjd_c, mag1_c, magerr1_c, mag2_c, magerr2_c
+
+        else:
+            dt_def= 0.1500
+            mjd1_s= [mjd-dt_def for mjd in mjd1]
+            mjd1_p= [mjd+dt_def for mjd in mjd1]
+                
+                #mjd_check= [min(mjd1_s, mjd1_p) < mjd2 < max(mjd1_s, mjd1_p) for mjd1_s, mjd1_p, mjd2 in zip(mjd1_s, mjd1_p, mjd2)]
+                #_c stands for checked
+            mjd_c=[]
+            mag1_c= []
+            magerr1_c= []
+
+            mag2_c= []
+            magerr2_c=[]
+                
+            for i in range(len(mjd1)):
+                for j in range(len(mjd2)):
+                    if min(mjd1_s[i], mjd1_p[i]) < mjd2[j] < max(mjd1_s[i], mjd1_p[i]):
+                        mjd_c.append(mjd1[i])
+                        mag1_c.append(mag1[i])
+                        magerr1_c.append(magerr1[i])
+
+                        mag2_c.append(mag2[j])
+                        magerr2_c.append(magerr2[j])
+                    else:
+                        continue
+            return mjd_c, mag1_c, magerr1_c, mag2_c, magerr2_c
         
-        #mjd_check= [min(mjd1_s, mjd1_p) < mjd2 < max(mjd1_s, mjd1_p) for mjd1_s, mjd1_p, mjd2 in zip(mjd1_s, mjd1_p, mjd2)]
-        #_c stands for checked
-        mjd_c=[]
-        mag1_c= []
-        magerr1_c= []
-
-        mag2_c= []
-        magerr2_c=[]
         
-        for i in range(len(mjd1)):
-            for j in range(len(mjd2)):
-                if min(mjd1_s[i], mjd1_p[i]) < mjd2[j] < max(mjd1_s[i], mjd1_p[i]):
-                    mjd_c.append(mjd1[i])
-                    mag1_c.append(mag1[i])
-                    magerr1_c.append(magerr1[i])
-
-                    mag2_c.append(mag2[j])
-                    magerr2_c.append(magerr2[j])
-                else:
-                    continue
-        return mjd_c, mag1_c, magerr1_c, mag2_c, magerr2_c
-        '''
-        if not all(mjd_check) == True:
-           ind= [i for i, x in enumerate(mjd_check) if not x]
-           
-           for j in ind:
-               mjd1.pop(j)
-               mag1.pop(j)
-               magerr1.pop(j)
-
-               mjd2.pop(j)
-               mag2.pop(j)
-               magerr2.pop(j)
-
-               return mjd1, mag1, magerr1, mag2, magerr2
-
-        else: 
-            
-            return mjd1, mag1, magerr1, mag2, magerr2
-        '''
+        
     def color_Val_Converter(mjd, mag1, magerr1, mag2, magerr2, dist_mod):
         ''' 
         Converts mjd to days_since_detection, both mags to color, and both magerrs to a final error
@@ -190,63 +204,90 @@ def data_Grapher():
             return days_since_detection, abs_mag2, magerr2
 
 
-    snname = 'SN2012aw'
     #Grabs data file of given supernovae
-    data= [i.strip().split() for i in open("./data/"+snname+ "_uvotB15.1.dat")]
+    try:
+        data= [i.strip().split() for i in open("./data/"+snname+ "_uvotB15.1.dat")]
+    except:
+        print(str(snname) + ' is not in our data files')
+        return "NULL", "NULL", "NULL"
 
-    #Grabs specified data from datafile and saves as dataframe
-    sndata= sn_Data(data)
-    
-    #Turns specified columns in dataframe to lists
-    sn_filter= sndata['filter'].to_list()
-    mjd= sndata['mjd'].to_list()
-    mag= sndata['mag'].to_list()
-    magerr= sndata['magerr'].to_list()
+    try:
+        #Grabs specified data from datafile and saves as dataframe
+        sndata= sn_Data(data)
+        
+        #Turns specified columns in dataframe to lists
+        sn_filter= sndata['filter'].to_list()
+        mjd= sndata['mjd'].to_list()
+        mag= sndata['mag'].to_list()
+        magerr= sndata['magerr'].to_list()
 
-    #filters data based on given filter names
-    mjd1, mag1, magerr1, mjd2, mag2, magerr2= filter_Data(sn_filter, mjd, mag, magerr)
+        #filters data based on given filter names
+        mjd1, mag1, magerr1, mjd2, mag2, magerr2= filter_Data(sn_filter, mjd, mag, magerr)
 
-    #Removes NAN/Null values
-    mjd1, mag1, magerr1, mjd2, mag2, magerr2= null_Filter(mjd1, mag1, magerr1, mjd2, mag2, magerr2)
-    
+    except:
+        print('1')
+        return "NULL", "NULL", "NULL"
 
-    #Makes copies of lists to more easily use later
-    mjdf1= mjd1[:]
-    magf1= mag1[:]
-    magerrf1= magerr1[:] 
-    mjdf2= mjd2[:]
-    magf2= mag2[:]
-    magerrf2= magerr2[:]
+    try:
+        #Removes NAN/Null values
+        mjd1, mag1, magerr1, mjd2, mag2, magerr2= null_Filter(mjd1, mag1, magerr1, mjd2, mag2, magerr2)
+        
 
-    #Checks if both filter mjds are in a certain range of each other
-    mjd, mag1, magerr1, mag2, magerr2= mjd_Check(mjd1, mag1, magerr1, mjd2, mag2, magerr2)
+        #Makes copies of lists to more easily use later
+        mjdf1= mjd1[:]
+        magf1= mag1[:]
+        magerrf1= magerr1[:] 
+        mjdf2= mjd2[:]
+        magf2= mag2[:]
+        magerrf2= magerr2[:]
+        '''
+        print(mjdf1)
+        print(magf1)
 
-    dist_mod= 30.1682355
-    #Converts values for color light curve
-    days, color, error= color_Val_Converter(mjd, mag1, magerr1, mag2, magerr2, dist_mod)
-    #Coverts values for abs_mag light curve of filter1
-    fil1_days, abs_mag1, magerr1= filter1_Val_Converter(mjdf1, magf1, magerrf1, dist_mod)
-    #Coverts values for abs_mag light curve of filter2
-    fil2_days, abs_mag2, magerr2= filter2_Val_Converter(mjdf2, magf2, magerrf2, dist_mod)
+        print(mjdf2)
+        print(magf2)
+        '''
+        #Checks if both filter mjds are in a certain range of each other
+        mjd, mag1, magerr1, mag2, magerr2= mjd_Check(mjd1, mag1, magerr1, mjd2, mag2, magerr2)
 
-    #Makes filter2 light curve
-    plot1= go.Scatter(x= fil1_days, y= abs_mag1, error_y= dict(array= magerr1, type= 'data', visible= False), mode= "lines+markers", name= snname+'_'+filter1)
-    #Makes filter2 light curve
-    plot2= go.Scatter(x= fil2_days, y= abs_mag2, error_y= dict(array= magerr2, type= 'data', visible= False), mode= "lines+markers", name= snname+'_'+filter2)
-    #Makes color light curve
-    plot3= go.Scatter(x= days, y= color, error_y= dict(array= error, type= 'data', visible= False), mode= "lines+markers", name= snname)
+        #dist_mod= 30.1682355
+        #Converts values for color light curve
+        days, color, error= color_Val_Converter(mjd, mag1, magerr1, mag2, magerr2, dist_mod)
+        #Coverts values for abs_mag light curve of filter1
+        fil1_days, abs_mag1, magerr1= filter1_Val_Converter(mjdf1, magf1, magerrf1, dist_mod)
+        #Coverts values for abs_mag light curve of filter2
+        fil2_days, abs_mag2, magerr2= filter2_Val_Converter(mjdf2, magf2, magerrf2, dist_mod)
+    except:
+        print('2')
+        return "NULL", "NULL", "NULL"
 
-    return  plot1, plot2, plot3
+    try:
+        #Makes filter2 light curve
+        plot1= go.Scatter(x= fil1_days, y= abs_mag1, error_y= dict(array= magerr1, type= 'data', visible= False),mode= "lines+markers", name= snname+'_'+filter1, legendgroup=snname)
+        #Makes filter2 light curve
+        plot2= go.Scatter(x= fil2_days, y= abs_mag2, error_y= dict(array= magerr2, type= 'data', visible= False), mode= "lines+markers", name= snname+'_'+filter2, legendgroup=snname)
+        #Makes color light curve
+        plot3= go.Scatter(x= days, y= color, error_y= dict(array= error, type= 'data', visible= False), mode= "lines+markers", name= snname, legendgroup=snname)
+
+        return  plot1, plot2, plot3
+
+    except:
+        print('3')
+        return "NULL", "NULL", "NULL"
         
 
 def main():
-    global filter1, filter2
-    #snname= input('Please give a Supernovae Name')
-    #filter1= input('Please specify the first filter')
-    #filter2= input('Please specify the second filter')
+    global filter1, filter2, dt
+
+    #snname= input('Please give a Supernovae Name: ')
+    filter1= input('Please specify the first filter: ')
+    filter2= input('Please specify the second filter: ')
+    dt= input(('Please specify a dt value or click ENTER for default dt value: '))
+
+    #dist_mod= 32.67857985
     
-    filter1 ='UVM2'
-    filter2 = 'V'
+    #filter1 ='UVM2'
+    #filter2 = 'V'
 
     pd.set_option('display.max_rows', 1000)
     swift= pd.read_csv('NewSwiftSNweblist.csv')
@@ -255,18 +296,40 @@ def main():
     pio.templates.default = "plotly_dark"
 
     #Sets up a 3 rowed subplot
-    fig= make_subplots(rows=3, cols=1,shared_xaxes=True,vertical_spacing=0)
+    fig= make_subplots(rows=3, cols=1, shared_xaxes=True, vertical_spacing=0)
 
     #Runs data_Grapher() and returns 3 plots
-    p1,p2, p3=data_Grapher()
+    plot_data= swift.apply(lambda row: data_Grapher(row['SNname'], row['Dist_mod_cor']), axis=1).to_list()
+
+    #plot_data= data_Grapher(snname, dist_mod)
 
     #adds those plots to fig
-    fig.append_trace(p1, row=1, col=1)
-    fig.append_trace(p2, row=2, col=1)
-    fig.append_trace(p3, row=3, col=1)
-    #dist_mod= 31.54400737
+    '''
+    fig.append_trace(plot_data[0], row=1, col=1)
+    fig.append_trace(plot_data[1], row=2, col=1)
+    fig.append_trace(plot_data[2], row=3, col=1)
+    '''
+    
+    for i in range(len(plot_data)):
+        if plot_data[i][0]=="NULL":
+            continue
+        else:
+            fig.append_trace(plot_data[i][0], row=1, col=1)
+    
+    for i in range(len(plot_data)):
+        if plot_data[i][1]=="NULL":
+            continue
+        else:
+            fig.append_trace(plot_data[i][1], row=2, col=1)
+    
+    for i in range(len(plot_data)):
+        if plot_data[i][2]=="NULL":
+            continue
+        else:
+            fig.append_trace(plot_data[i][2], row=3, col=1)
+    
 
-    fig.update_layout(legend_title= "Supernovae")
+    fig.update_layout(title_text= filter1 + '-'+ filter2 + ' Color Light Curve', legend_title= "Supernovae")
 
     #Edit axis orientation
     fig['layout']['yaxis']['autorange'] = "reversed"
@@ -312,41 +375,9 @@ def main():
         ]
     )
 
-
     fig.show()
-    '''
-    def mjd_Check(mjd1, mjd2):
-        dt=.1500
-        mjd1_s= [mjd-dt for mjd in mjd1]
-        mjd1_p= [mjd+dt for mjd in mjd1]
-        
-        mjd_check= [min(mjd1_s, mjd1_p) < mjd2 < max(mjd1_s, mjd1_p) for mjd1_s, mjd1_p, mjd2 in zip(mjd1_s, mjd1_p, mjd2)]
-        print(mjd_check)
+    
 
-        if not all(mjd_check) == True:
-           ind= [i for i, x in enumerate(mjd_check) if not x]
-           
-           for i in ind:
-               mjd1.pop(i)
-               mjd2.pop(i)
-               
-               mjd= mjd1 + mjd2
-               mjd= sorted(mjd, key= float)
-               return mjd
-
-        else: 
-            mjd= mjd1 + mjd2
-            mjd= sorted(mjd, key= float)
-            return mjd
-
-    a= [1,2,5,6]
-    b= [5, 6, 7, 8]
-    c=[3, 4.8, 2,9]
-    #Given 2 lists a and b we can subtract the values in the lists as such
-    #We can put any operation in the function
-    #print([min(a,b) < c < max(a, b) for a, b, c in zip(a, b, c)])
-
-    '''
 
     
 if __name__ == "__main__":  main()

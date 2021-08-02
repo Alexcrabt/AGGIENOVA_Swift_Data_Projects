@@ -416,10 +416,11 @@ def main():
         updatemenus=[
             dict(
                 type="dropdown", showactive=False, xanchor="left", yanchor="top", x=0.08, y=1.08,active=0, buttons=list(
-                    [   dict(
+                    [   
+                        dict(
                             label= "All",
-                            method="update",
-                            args=[{'visible':[True, True]}, {'title': "All Supernovae " + str(SNtype)+ " Band Light Curves"}]),
+                            method= "update",
+                            args= [{'visible': [True, True]}, {'title': "All Supernovae " + str(SNtype)+ " Band Light Curves"}]),
                         dict(
                             label= "UVW2",
                             method= "update",
