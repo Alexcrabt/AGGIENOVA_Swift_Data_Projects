@@ -537,6 +537,7 @@ def main():
     #Edit axis orientation and set yaxis visibility and domain size
     fig['layout']['yaxis']['autorange'] = "reversed"
     fig['layout']['yaxis2']['autorange'] = "reversed"
+    fig['layout']['yaxis3']['autorange'] = "reversed"
     fig['layout']['yaxis']['visible']= False
     fig['layout']['yaxis2']['visible']= False
     fig['layout']['yaxis3']['domain']= [0,1]
