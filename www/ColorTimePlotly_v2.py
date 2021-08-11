@@ -15,7 +15,7 @@ import itertools
 import random
 from itertools import cycle
 
-#Must have plotly version 5.1.0 or higher installed.
+#Must have plotly version 5.1.0 higher installed.
 #To do so use pip install plotly==5.1.0
 
 def sn_Data(data):
@@ -276,7 +276,7 @@ def filter_Graphs_Comb(filt_dat):
      
     return filt
 
-def data_Grapher(snname, dist_mod, type):
+def data_Grapher(snname, dist_mod, type, SNtype):
     global colors, filt1
     
     #Grabs data file of given supernovae
@@ -353,7 +353,7 @@ def data_Grapher(snname, dist_mod, type):
         except:
             #returns Null if null_Filter returns empty list
             filt_dat[i]= "NULL"
-    
+
     #Checks if both filter mjds are in a certain range of each other for color data
     for i in range(len(color_dat)):
         #if list has Null in it skips it
@@ -385,10 +385,11 @@ def data_Grapher(snname, dist_mod, type):
                 filt_dat[i]= "NULL"
     
     #Pairs the filter data with corresponding color data
+
     filt_dat= filter_Graphs_Comb(filt_dat)
     trace_color= px.colors.qualitative.Plotly
     plots=[]
-    
+   
     #Takes filter and color data and makes data to graph in plotly
     for i in range(len(color_dat)):
         #Chooses random color from plotly default colors to use a legengroup color
@@ -405,7 +406,7 @@ def data_Grapher(snname, dist_mod, type):
                     plots.append((go.Scatter(x= filt_dat[i][0], y= filt_dat[i][1], error_y= dict(array= filt_dat[i][2], type= 'data', visible= False),marker=dict(color=color, line=dict(color=color)), visible=False, mode= "lines+markers", name= snname+'_'+type+'_'+colors[i][0], legendgroup=snname+'_'+colors[i][0]+'-'+colors[i][1], legendgrouptitle_text=snname+'_'+type+'_'+colors[i][0]+'-'+colors[i][1]),
                         go.Scatter(x= filt_dat[i][3], y= filt_dat[i][4], error_y= dict(array= filt_dat[i][5], type= 'data', visible= False),marker=dict(color=color, line=dict(color=color)), visible=False, mode= "lines+markers", name= snname+'_'+type+'_'+colors[i][1], legendgroup=snname+'_'+colors[i][0]+'-'+colors[i][1]),
                         go.Scatter(x= color_dat[i][0], y= color_dat[i][1], error_y= dict(array= color_dat[i][2], type= 'data', visible= False),marker=dict(color=color, line=dict(color=color)), mode= "lines+markers", name= snname+'_'+type+'_'+colors[i][0]+'-'+colors[i][1], legendgroup=snname+'_'+colors[i][0]+'-'+colors[i][1])))
-                else:
+                elif type == SNtype:
                     plots.append((go.Scatter(x= filt_dat[i][0], y= filt_dat[i][1], error_y= dict(array= filt_dat[i][2], type= 'data', visible= False),marker=dict(color=color, line=dict(color=color)), visible=False, mode= "lines+markers", name= snname+'_'+colors[i][0], legendgroup=snname+'_'+colors[i][0]+'-'+colors[i][1], legendgrouptitle_text=snname+'_'+colors[i][0]+'-'+colors[i][1]),
                         go.Scatter(x= filt_dat[i][3], y= filt_dat[i][4], error_y= dict(array= filt_dat[i][5], type= 'data', visible= False),marker=dict(color=color, line=dict(color=color)), visible=False, mode= "lines+markers", name= snname+'_'+colors[i][1], legendgroup=snname+'_'+colors[i][0]+'-'+colors[i][1]),
                         go.Scatter(x= color_dat[i][0], y= color_dat[i][1], error_y= dict(array= color_dat[i][2], type= 'data', visible= False),marker=dict(color=color, line=dict(color=color)), mode= "lines+markers", name= snname+'_'+colors[i][0]+'-'+colors[i][1], legendgroup=snname+'_'+colors[i][0]+'-'+colors[i][1])))
@@ -469,7 +470,7 @@ def BtnBoolList(count):
     return w2_m2, w2_w1, w2_u, w2_b, w2_v, m2_w1, m2_u, m2_b, m2_v, w1_u, w1_b, w1_v, u_b, u_v, b_v
 
 def main():
-    global SNtype, dt
+    global dt
 
     #Asks for SNe type and dt input, defaults to dt=.1500 if no dt specified
     SNtype= input("What type supernovae do you want to plot? (Press ENTER if you want to graph all):")
@@ -478,6 +479,7 @@ def main():
     pd.set_option('display.max_rows', 1000)
     #reads in swift data to use
     swift= pd.read_csv('NewSwiftSNweblist.csv')
+    swift= swift.replace(np.nan, '', regex=True)
 
     #Sets plotly background to dark. plotly_white gives white backgound
     pio.templates.default = "plotly_dark"
@@ -486,8 +488,8 @@ def main():
     fig= make_subplots(rows=3, cols=1, shared_xaxes=True, vertical_spacing=0)
 
     #Runs data_Grapher() and returns lists of 3 plots per SNe or Null if lacking data on specific SNe
-    plot_data= swift.apply(lambda row: data_Grapher(row['SNname'], row['Dist_mod_cor'], row['type']), axis=1)
-
+    
+    plot_data= swift.apply(lambda row: data_Grapher(row['SNname'], row['Dist_mod_cor'], row['type'], SNtype), axis=1)
     btn_count=[]
     alpha_list=['a','b', 'c', 'd', 'e','f', 'g', 'h', 'i', 'j', 'k','l', 'm', 'n', 'o']
 
@@ -506,9 +508,12 @@ def main():
 
     '''
     #If you want to run for only one supernove, specify snname, dis_mod, and type in function below
-    #and comment out lines 479 to 495 and uncomment out this section.
-
-    plot_data= data_Grapher(snname, dist_mod)
+    #and comment out lines 488 to 505 and uncomment out this section and specify 
+    #snname and dist_mod type.
+    snname= "SN2008bo"
+    dist_mod= float(31.57050702)
+    type=""
+    plot_data= data_Grapher(snname, dist_mod, type)
 
     btn_count=[]
     alpha_list=['a','b', 'c', 'd', 'e','f', 'g', 'h', 'i', 'j', 'k','l', 'm', 'n', 'o']
@@ -522,7 +527,7 @@ def main():
                 fig.add_trace(plot_data[j][2], row=3, col=1)
                 btn_count.append(alpha_list[j])
     '''
-
+    
     #Creates empty dataframe to store the button bool lists to use in buttons.
     btns= pd.DataFrame()
     btn_list= BtnBoolList(btn_count)
@@ -583,7 +588,7 @@ def main():
                         dict(
                             label= "UVW2-UVW1",
                             method="update",
-                            args=[{'visible': btns[1].to_list()}, {'title': "UVW2-UVW1 Supernovae Light Curves", 'yaxis.title': 'UVW2 Absolute Mag', 'yaxis2.title': 'UVW1 Absolute Mag', 'yaxis3.title': 'UVW2-UVW1', "yaxis.visible": True, "yaxis2.visible": True,"yaxis.domain":[.66667, 1], "yaxis2.domain": [.33334,.66667],"yaxis3.domain": [0,.33334]}]),
+                            args=[{'visible':btns[1].to_list()}, {'title': "UVW2-UVW1 Supernovae Light Curves", 'yaxis.title': 'UVW2 Absolute Mag', 'yaxis2.title': 'UVW1 Absolute Mag', 'yaxis3.title': 'UVW2-UVW1', "yaxis.visible": True, "yaxis2.visible": True,"yaxis.domain":[.66667, 1], "yaxis2.domain": [.33334,.66667],"yaxis3.domain": [0,.33334]}]),
                         dict(
                             label= "UVW2-U",
                             method="update",

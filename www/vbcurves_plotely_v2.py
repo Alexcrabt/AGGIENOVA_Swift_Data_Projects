@@ -96,8 +96,12 @@ def Data_Grapher(snname, dist_mod, type):
             mjd_w2, mag_w2, magerr_w2= Value_Converter(mjd_w2, mag_w2, magerr_w2, dist_mod)
         
             if type.find(SNtype) == 0:
-                uvw2= go.Scatter(x= mjd_w2, y= mag_w2, error_y= dict(array= magerr_w2, type= 'data', visible= False), mode= "lines+markers", name= snname +'_W2')
-                return uvw2
+                if SNtype == "":
+                    uvw2= go.Scatter(x= mjd_w2, y= mag_w2, error_y= dict(array= magerr_w2, type= 'data', visible= False), mode= "lines+markers", name= snname +'_W2')
+                    return uvw2
+                elif type == SNtype:
+                    uvw2= go.Scatter(x= mjd_w2, y= mag_w2, error_y= dict(array= magerr_w2, type= 'data', visible= False), mode= "lines+markers", name= snname +'_W2')
+                    return uvw2
             else:
                 return "NULL"
         
@@ -117,8 +121,12 @@ def Data_Grapher(snname, dist_mod, type):
             mjd_m2, mag_m2, magerr_m2= Value_Converter(mjd_m2, mag_m2, magerr_m2, dist_mod)
         
             if type.find(SNtype) == 0:
-                uvm2= go.Scatter(x= mjd_m2, y= mag_m2, error_y= dict(array= magerr_m2, type= 'data', visible= False), mode= "lines+markers", name= snname +'_M2')
-                return uvm2
+                if SNtype == "":
+                    uvm2= go.Scatter(x= mjd_m2, y= mag_m2, error_y= dict(array= magerr_m2, type= 'data', visible= False), mode= "lines+markers", name= snname +'_M2')
+                    return uvm2
+                elif type == SNtype:
+                    uvm2= go.Scatter(x= mjd_m2, y= mag_m2, error_y= dict(array= magerr_m2, type= 'data', visible= False), mode= "lines+markers", name= snname +'_M2')
+                    return uvm2
             else:
                 return "NULL"
             
@@ -138,8 +146,12 @@ def Data_Grapher(snname, dist_mod, type):
             mjd_w1, mag_w1, magerr_w1= Value_Converter(mjd_w1, mag_w1, magerr_w1, dist_mod)
             
             if type.find(SNtype) == 0:
-                uvw1= go.Scatter(x= mjd_w1, y= mag_w1, error_y= dict(array= magerr_w1, type= 'data', visible= False), mode= "lines+markers", name= snname +'_W1')
-                return uvw1
+                if SNtype == "":
+                    uvw1= go.Scatter(x= mjd_w1, y= mag_w1, error_y= dict(array= magerr_w1, type= 'data', visible= False), mode= "lines+markers", name= snname +'_W1')
+                    return uvw1
+                elif type == SNtype:
+                    uvw1= go.Scatter(x= mjd_w1, y= mag_w1, error_y= dict(array= magerr_w1, type= 'data', visible= False), mode= "lines+markers", name= snname +'_W1')
+                    return uvw1
             else:
                 return "NULL"
             
@@ -159,8 +171,13 @@ def Data_Grapher(snname, dist_mod, type):
             mjd_u, mag_u, magerr_u= Value_Converter(mjd_u, mag_u, magerr_u, dist_mod)
             
             if type.find(SNtype) == 0:
-                u= go.Scatter(x= mjd_u, y= mag_u, error_y= dict(array= magerr_u, type= 'data', visible= False), mode= "lines+markers", name= snname +'_U')
-                return u
+                if SNtype == "":
+                    u= go.Scatter(x= mjd_u, y= mag_u, error_y= dict(array= magerr_u, type= 'data', visible= False), mode= "lines+markers", name= snname +'_U')
+                    return u
+                elif type == SNtype:
+                    u= go.Scatter(x= mjd_u, y= mag_u, error_y= dict(array= magerr_u, type= 'data', visible= False), mode= "lines+markers", name= snname +'_U')
+                    return u
+                
             else:
                 return "NULL"
             
@@ -180,8 +197,13 @@ def Data_Grapher(snname, dist_mod, type):
             mjd_b, mag_b, magerr_b= Value_Converter(mjd_b, mag_b, magerr_b, dist_mod)
             
             if type.find(SNtype) == 0:
-                b= go.Scatter(x= mjd_b, y= mag_b, error_y= dict(array= magerr_b, type= 'data', visible= False), mode= "lines+markers", name= snname +'_B')
-                return b
+                if SNtype == "":
+                    b= go.Scatter(x= mjd_b, y= mag_b, error_y= dict(array= magerr_b, type= 'data', visible= False), mode= "lines+markers", name= snname +'_B')
+                    return b
+                elif type == SNtype:
+                    b= go.Scatter(x= mjd_b, y= mag_b, error_y= dict(array= magerr_b, type= 'data', visible= False), mode= "lines+markers", name= snname +'_B')
+                    return b
+        
             else:
                 return "NULL"
             
@@ -201,8 +223,13 @@ def Data_Grapher(snname, dist_mod, type):
             mjd_v, mag_v, magerr_v= Value_Converter(mjd_v, mag_v, magerr_v, dist_mod)
             
             if type.find(SNtype) == 0:
-                v= go.Scatter(x= mjd_v, y= mag_v, error_y= dict(array= magerr_v, type= 'data', visible= False), mode= "lines+markers", name= snname +'_V')
-                return v
+                if SNtype == "":
+                    v= go.Scatter(x= mjd_v, y= mag_v, error_y= dict(array= magerr_v, type= 'data', visible= False), mode= "lines+markers", name= snname +'_V')
+                    return v
+                elif type == SNtype:
+                    v= go.Scatter(x= mjd_v, y= mag_v, error_y= dict(array= magerr_v, type= 'data', visible= False), mode= "lines+markers", name= snname +'_V')
+                    return v
+                
             else:
                 return "NULL"
             
@@ -309,6 +336,7 @@ def main():
 
     #Reads in SwiftSNweblist
     swift= pd.read_csv("NewSwiftSNweblist.csv")
+    swift= swift.replace(np.nan, '', regex=True)
 
     #Takes given Supernovae type input
     SNtype= input("What type supernovae do you want to plot? (Press ENTER if you want to graph all):")
@@ -320,8 +348,7 @@ def main():
 
     #Uses pandas and lamda function to parse necessary swift data columns through Data_Grapher function
     data= swift.apply(lambda row: Data_Grapher(row['SNname'], row['Dist_mod_cor'], row['type']), axis=1).to_list()
-    #print(data)
-
+    
     numList=[]
 
     '''
@@ -331,42 +358,42 @@ def main():
     
     '''
     for i in range(len(data)):
-        if data[i][0]=="NULL":
+        if data[i][0]=="NULL" or (data[i][0] is None):
             continue
         else:
             fig.add_trace(data[i][0])
             numList.append("1")
     
     for i in range(len(data)):
-        if data[i][1]=="NULL":
+        if data[i][1]=="NULL" or (data[i][1] is None):
             continue
         else:
             fig.add_trace(data[i][1])
             numList.append("2")
     
     for i in range(len(data)):
-        if data[i][2]=="NULL":
+        if data[i][2]=="NULL" or (data[i][2] is None):
             continue
         else:
             fig.add_trace(data[i][2])
             numList.append("3")
 
     for i in range(len(data)):
-        if data[i][3]=="NULL":
+        if data[i][3]=="NULL"or (data[i][3] is None):
             continue
         else:
             fig.add_trace(data[i][3])
             numList.append("4")
 
     for i in range(len(data)):
-        if data[i][4]=="NULL":
+        if data[i][4]=="NULL" or (data[i][4] is None):
             continue
         else:
             fig.add_trace(data[i][4])
             numList.append("5")
 
     for i in range(len(data)):
-        if data[i][5]=="NULL":
+        if data[i][5]=="NULL" or (data[i][5] is None):
             continue
         else:
             fig.add_trace(data[i][5])

@@ -17,9 +17,11 @@ from itertools import cycle
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
+from dash.exceptions import PreventUpdate
+import dash_daq as daq
 
-
+app = dash.Dash(__name__)
 
 #Must have plotly version 5.1.0 higher installed.
 #To do so use pip install plotly==5.1.0
@@ -108,7 +110,7 @@ def null_Color_Filter(mjd1_temp, mag1_temp, magerr1_temp, mjd2_temp, mag2_temp, 
     else:
         return mjd1, mag1, magerr1, mjd2, mag2, magerr2
 
-def mjd_Check(mjd1, mag1, magerr1, mjd2, mag2, magerr2):
+def mjd_Check(mjd1, mag1, magerr1, mjd2, mag2, magerr2, dt):
     '''
     Checks if the mjd of bothe filters are in a certain ranage of each other, if they are
     it saves all data (mjd, mag, magerr) for them and returns them. 
@@ -185,7 +187,7 @@ def color_Val_Converter(mjd, mag1, magerr1, mag2, magerr2, dist_mod):
         else:
             return mjd, color, error
 
-def data_Grapher(snname, dist_mod, type):
+def data_Grapher(snname, dist_mod, type, SNtype, dt):
     global colors, filt1
     
     #Grabs data file of given supernovae
@@ -250,7 +252,7 @@ def data_Grapher(snname, dist_mod, type):
         if color_dat[i] == "NULL":
             continue
         else:
-            color_dat[i]= mjd_Check(color_dat[i][0], color_dat[i][1], color_dat[i][2], color_dat[i][3], color_dat[i][4], color_dat[i][5])
+            color_dat[i]= mjd_Check(color_dat[i][0], color_dat[i][1], color_dat[i][2], color_dat[i][3], color_dat[i][4], color_dat[i][5], dt)
 
     #Converts values for color light curve
     for i in range(len(color_dat)):
@@ -263,131 +265,143 @@ def data_Grapher(snname, dist_mod, type):
             except:
                 color_dat[i]= "NULL"
     
-    
-    plots_dat=[]
-    print(color_dat)
+    plots_dat= []
+    #type_temp= pd.DataFrame(columns=['type'])
+    #type_temp['type']= type.str.find(SNtype)
+    #print(type_temp)
+
     for i in range(len(color_dat)):
         #Chooses random color from plotly default colors to use a legengroup color
         
         #If color list has a null value skip graphing that as well as corresponding filter data
         if color_dat[i] == "NULL":
-            plots_dat.append("NULL")
+            plots_dat.append(np.nan)
         #If filter list has a null value skip graphing that as well as corresponding color data
         else:
             if type.find(SNtype) == 0:
-                plots_dat.append((snname, color_dat[i][0], color_dat[i][1], color_dat[i][2]))
+                if SNtype =="":
+                    plots_dat.append((snname, color_dat[i][0], color_dat[i][1], color_dat[i][2]))
+                elif type == SNtype:
+                    plots_dat.append((snname, color_dat[i][0], color_dat[i][1], color_dat[i][2]))
             else:
             #If no SNe type match append Null
-                plots_dat.append("NULL")
+                plots_dat.append(np.nan)
     
-    return plots_dat, colors
-    
+    return plots_dat
 
+fig=go.Figure()
+fig.update_layout(height=625,template= "plotly_dark")
 
-def main():
-    
-    global SNtype, dt
+app.layout= html.Div([
+        html.Div([html.Label(['SNe Type:'], style={'font-weight': 'bold'}), dcc.Input(id='SNe-type', type='text', placeholder= 'Give SNe Type'), html.Button('Submit SNe Type', id='SNe-sub')], style={'width': '25%', 'display': 'inline-block'}),
+        html.Div([html.Label(['dt value:'], style={'font-weight': 'bold'}), dcc.Input(id='dt', type='text', placeholder= 'Give dt or ignore for def.', value= '')], style={'right':'auto','width': '25%', 'display': 'inline-block', 'position':'absolute'}),
+        html.Br(), 
+        html.Div(id= 'y-axis', style={'width': '25%', 'display': 'inline-block'}),
 
-    #Asks for SNe type and dt input, defaults to dt=.1500 if no dt specified
-    #SNtype= input("What type supernovae do you want to plot? (Press ENTER if you want to graph all):")
-    #dt= input('Please specify a dt value or click ENTER for default dt value: ')
+        html.Div(id= 'x-axis', style={'width': '25%', 'display': 'inline-block'}),
 
-    SNtype=""
-    dt= ""
-    pd.set_option('display.max_rows',1000)
-    #reads in swift data to use
-    swift= pd.read_csv('NewSwiftSNweblist.csv')
-
-    #Sets plotly background to dark. plotly_white gives white backgound
-    pio.templates.default = "plotly_dark"
-
-    #Sets up a 3 rowed subplot
-    fig=go.Figure()
-    
-    snname= "SN2008bo"
-    dist_mod= float(31.57050702)
-    type=""
-
-    plots_dat, colors= data_Grapher(snname, dist_mod, type)
-
-    color_dat=pd.DataFrame(columns=['UVW2-UVM2', 'UVW2-UVW1', 'UVW2-U','UVW2-B','UVW2-V','UVM2-UVW1','UVM2-U','UVM2-B','UVM2-V','UVW1-U','UVW1-B','UVW1-V','U-B','U-V','B-V'])
-
-    btns= pd.DataFrame()
-    for i in range(len(plots_dat)):
-        if plots_dat[i] == "NULL":
-            color_dat[colors[i][0]+ '-'+ colors[i][1]]= [[[], [], [], []]]
-            continue
-        else:
-            color_dat[colors[i][0]+ '-'+ colors[i][1]]= [[plots_dat[i][0], plots_dat[i][1], plots_dat[i][2], plots_dat[i][3]]]
-
-    trace_color= px.colors.qualitative.Plotly
-    print(color_dat)
-    line_styles_names = ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot']
-
-    symbols = [x for x in SymbolValidator().values[::-2] if not isinstance(x, int)]
-    symbols= [i for i in symbols if not i.isdigit()]
-    del symbols[8:12]
-    symbols_names = list(set([i.replace("-thin", "") for i in symbols]))
-    
-    
-    app = dash.Dash(__name__)
-
-    app.layout= html.Div([
-
-        html.Div([html.Label(['Y-Axis Color:'], style={'font-weight': 'bold'}),
-            dcc.Dropdown(id= 'y-dropdown', options=[
-                {'label': i, 'value': i} for i in color_dat
-                ], multi=False, value= 'UVW2-UVM2'
-
-        )], style={'width': '25%', 'display': 'inline-block'}),
-
-        html.Div([html.Label(['X-Axis Color:'], style={'font-weight': 'bold'}),
-            dcc.Dropdown(id= 'x-dropdown', options=[
-                {'label': i, 'value': i} for i in color_dat
-                ], multi=False, value= 'UVW2-UVW1'
-
-        )], style={'width': '25%', 'display': 'inline-block'}), 
+        #html.Div([
+            #daq.BooleanSwitch(id='error-btn', on=False, label="Error Bars:", labelPosition='top', style={'top':'9px', 'right':'auto', 'width':'6%','position': 'absolute', 'font-weight': 'bold'})], style={'display': 'inline-block'}),    
         
-        dcc.Graph(id="SNe-scatter", figure=fig), 
+        dcc.Graph(id="SNe-scatter", figure=fig) 
     ])
 
-    @app.callback(
-        Output("SNe-scatter", "figure"),
-        [Input("y-dropdown", "value"), Input('x-dropdown', 'value')])
-    def update_graph(y, x):
+@app.callback(
+    [Output("y-axis", "children"), Output("x-axis", "children")], 
+    [Input('SNe-sub', 'n_clicks'), Input('dt', 'value'), State('SNe-type', 'value')])
+def main(n_clicks,dt, SNtype):
+    
+    global color_dat
 
-        color_traces= random.choice(trace_color)
+    if n_clicks is None:
+        raise PreventUpdate
+    else:
+        #Asks for SNe type and dt input, defaults to dt=.1500 if no dt specified
+        #SNtype= input("What type supernovae do you want to plot? (Press ENTER if you want to graph all):")
+        #dt= input('Please specify a dt value or click ENTER for default dt value: ')
+        #SNtype="Ib"
+        #dt=""
 
-        line_style= random.choice(line_styles_names)
+        pd.set_option('display.max_rows',1000)
+        #reads in swift data to use
+        swift= pd.read_csv('NewSwiftSNweblist.csv')
+        swift= swift.replace(np.nan, '', regex=True)
 
-        marker= random.choice(symbols_names)
+        #Sets plotly background to dark. plotly_white gives white backgound
 
-        color_data= color_dat
+        #Sets up a 3 rowed subplot
         
-        traces=[]
+        
+        #snname= "SN2008bo"
+        #dist_mod= float(31.57050702)
+        #type=""
 
-        for i in range(len(color_data[x])):
-            if not len(color_data[x][i][1]) or not len(color_data[x][i][2]) or not len(color_data[y][i][1]) or not len(color_data[y][i][2]):
+        
+        plots_data= swift.apply(lambda row: data_Grapher(row['SNname'], row['Dist_mod_cor'], row['type'], SNtype, dt), axis=1)
+
+        color_dat=pd.DataFrame(columns=['UVW2-UVM2', 'UVW2-UVW1', 'UVW2-U','UVW2-B','UVW2-V','UVM2-UVW1','UVM2-U','UVM2-B','UVM2-V','UVW1-U','UVW1-B','UVW1-V','U-B','U-V','B-V'])
+
+        for i in range(len(plots_data)):
+            if plots_data[i] == "NULL":
+                continue
+            elif all(i != i for i in plots_data[i]):
                 continue
             else:
-                color_c= mjd_Check(color_data[x][i][1], color_data[x][i][2], color_data[x][i][3], color_data[y][i][1], color_data[y][i][2], color_data[y][i][3])
-                traces.append(go.Scatter(x= color_c[1], y= color_c[3], error_y= dict(array= [], type= 'data', visible= False), marker= {'symbol': marker, 'color': color_traces}, line={'dash': line_style, 'color': color_traces}, mode= "lines+markers", name= color_data[y][i][0]+'_'+SNtype))
+                color_dat.loc[len(color_dat)]= plots_data[i]
 
-        layout= go.Layout(title= y+ '-' + x +' Diagram', height=650,template= "plotly_dark", legend_title= "Supernovae", showlegend=True)
+        label1= html.Label(['Y-Axis Color:'], style={'font-weight': 'bold'}),dcc.Dropdown(id= 'y-dropdown', options=[{'label': i, 'value': i} for i in color_dat], value='UVW2-UVM2')
+        label2= html.Label(['X-Axis Color:'], style={'font-weight': 'bold'}),dcc.Dropdown(id= 'x-dropdown', options=[{'label': i, 'value': i} for i in color_dat], value='UVW2-UVW1')
+        return label1, label2
+    
+    #trace_color= px.colors.qualitative.Plotly
 
+line_styles_names = ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot']
+
+symbols = [x for x in SymbolValidator().values[::-2] if not isinstance(x, int)]
+symbols= [i for i in symbols if not i.isdigit()]
+del symbols[8:12]
+symbols_names = list(set([i.replace("-thin", "") for i in symbols]))
+    
+    
+
+@app.callback(
+    Output("SNe-scatter", "figure"),
+    [Input("y-dropdown", "value"), Input('x-dropdown', 'value'), Input('dt', 'value'), State('SNe-type', 'value')])
+def update_graph(y, x, dt, SNtype):
+
+    #color_traces= cycle(trace_color)
+
+    line_style= cycle(line_styles_names)
+
+    marker= cycle(symbols_names)
+
+    color_data= color_dat
         
-        return {'data': traces, 'layout':layout}
-    app.run_server(debug=True)
+    traces=[]
+
+    for i in range(len(color_data[x])):
+        if pd.isna(color_data[x][i]) or pd.isna(color_data[y][i]):
+            continue
+        else:
+            color_c= mjd_Check(color_data[x][i][1], color_data[x][i][2], color_data[x][i][3], color_data[y][i][1], color_data[y][i][2], color_data[y][i][3], dt)
+
+            traces.append(go.Scatter(x= color_c[1], y= color_c[3],  error_x= dict(array= color_c[2], type= 'data', visible= False), error_y= dict(array= color_c[4], type= 'data', visible= False), marker= {'symbol': next(marker) }, line={'dash': next(line_style)}, mode= "lines+markers", name= color_data[y][i][0]+'_'+SNtype))
+            
+    layout= go.Layout(title= '('+y+')'+ '-' + '('+x+')' +' Diagram', yaxis=dict(title='('+y+')'), xaxis=dict(title='('+x+')'), height=625,template= "plotly_dark", legend_title= "Supernovae", showlegend=True, updatemenus=[
+        dict(
+            type="buttons", showactive=False, xanchor="left", yanchor="top", x=0, y=1.08, buttons=list(
+                [dict(
+                        label="Error Bars",
+                        method="update",
+                        args=[{"error_x.visible": False,"error_y.visible": False}],
+                        args2= [{"error_x.visible": True,"error_y.visible": True}],
+                            
+                                )
+                ])),])
+        
+        
+    return {'data': traces, 'layout':layout}
     
-  
     
-    '''
-    #Saves graph as html file with this name format
-    
-    if SNtype == "":
-        fig.write_html("All_SNe_ColorLight_Curves.html")
-    else:
-        fig.write_html("SN_type_"+SNtype+"_ColorLight_Curves.html")
-    '''
-    #fig.show()
-if __name__ == "__main__":  main()
+if __name__ == "__main__": app.run_server(debug=True)
+
