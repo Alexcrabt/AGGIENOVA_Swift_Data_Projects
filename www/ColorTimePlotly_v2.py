@@ -170,16 +170,37 @@ def mjd_Check(mjd1, mag1, magerr1, mjd2, mag2, magerr2):
         magerr2_c=[]
                 
         for i in range(len(mjd1)):
+            mjd_temp=[]
+            mag1_temp= []
+            magerr1_temp= []
+            mag2_temp= []
+            magerr2_temp= []
             for j in range(len(mjd2)):
                 if min(mjd1_s[i], mjd1_p[i]) < mjd2[j] < max(mjd1_s[i], mjd1_p[i]):
-                    mjd_c.append(mjd1[i])
-                    mag1_c.append(mag1[i])
-                    magerr1_c.append(magerr1[i])
+                    #mjd_c.append(mjd1[i])
+                    mjd_temp.append(mjd1[i])
+                    #mag1_c.append(mag1[i])
+                    mag1_temp.append(mag1[i])
+                    #magerr1_c.append(magerr1[i])
+                    magerr1_temp.append(magerr1[i])
 
-                    mag2_c.append(mag2[j])
-                    magerr2_c.append(magerr2[j])
+                    #mag2_c.append(mag2[j])
+                    mag2_temp.append(mag2[j])
+                    #magerr2_c.append(magerr2[j])
+                    magerr2_temp.append(magerr2[j])
                 else:
                     continue
+
+            if len(mjd_temp):
+                mjd_c.append(mjd_temp[0])
+                mag1_c.append(mag1_temp[0])
+                magerr1_c.append(magerr1_temp[0])
+
+                mag2_mean= sum(mag2_temp)/len(mag2_temp)
+                magerr2_mean= sum(magerr2_temp)/len(magerr2_temp)
+
+                mag2_c.append(mag2_mean)
+                magerr2_c.append(magerr2_mean)
         return mjd_c, mag1_c, magerr1_c, mag2_c, magerr2_c
 
     else:
@@ -197,16 +218,37 @@ def mjd_Check(mjd1, mag1, magerr1, mjd2, mag2, magerr2):
         magerr2_c=[]
                 
         for i in range(len(mjd1)):
+            mjd_temp=[]
+            mag1_temp= []
+            magerr1_temp= []
+            mag2_temp= []
+            magerr2_temp= []
             for j in range(len(mjd2)):
                 if min(mjd1_s[i], mjd1_p[i]) < mjd2[j] < max(mjd1_s[i], mjd1_p[i]):
-                    mjd_c.append(mjd1[i])
-                    mag1_c.append(mag1[i])
-                    magerr1_c.append(magerr1[i])
+                    #mjd_c.append(mjd1[i])
+                    mjd_temp.append(mjd1[i])
+                    #mag1_c.append(mag1[i])
+                    mag1_temp.append(mag1[i])
+                    #magerr1_c.append(magerr1[i])
+                    magerr1_temp.append(magerr1[i])
 
-                    mag2_c.append(mag2[j])
-                    magerr2_c.append(magerr2[j])
+                    #mag2_c.append(mag2[j])
+                    mag2_temp.append(mag2[j])
+                    #magerr2_c.append(magerr2[j])
+                    magerr2_temp.append(magerr2[j])
                 else:
                     continue
+
+            if len(mjd_temp):
+                mjd_c.append(mjd_temp[0])
+                mag1_c.append(mag1_temp[0])
+                magerr1_c.append(magerr1_temp[0])
+
+                mag2_mean= sum(mag2_temp)/len(mag2_temp)
+                magerr2_mean= sum(magerr2_temp)/len(magerr2_temp)
+
+                mag2_c.append(mag2_mean)
+                magerr2_c.append(magerr2_mean)
         return mjd_c, mag1_c, magerr1_c, mag2_c, magerr2_c
         
         

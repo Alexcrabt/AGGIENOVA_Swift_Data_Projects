@@ -497,7 +497,10 @@ def main():
 )
 
     #Saves graph as html file with this name format
-    fig.write_html("SN_type_"+SNtype+"_Light_Curve.html")
+    if SNtype == "":
+        fig.write_html("All_SNe_Light_Curves.html")
+    else:
+        fig.write_html("SN_type_"+SNtype+"_Light_Curve.html")
 
     fig.show()
     

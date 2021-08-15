@@ -130,16 +130,38 @@ def mjd_Check(mjd1, mag1, magerr1, mjd2, mag2, magerr2, dt):
         magerr2_c=[]
                 
         for i in range(len(mjd1)):
+            mjd_temp=[]
+            mag1_temp= []
+            magerr1_temp= []
+            mag2_temp= []
+            magerr2_temp= []
             for j in range(len(mjd2)):
                 if min(mjd1_s[i], mjd1_p[i]) < mjd2[j] < max(mjd1_s[i], mjd1_p[i]):
-                    mjd_c.append(mjd1[i])
-                    mag1_c.append(mag1[i])
-                    magerr1_c.append(magerr1[i])
+                    #mjd_c.append(mjd1[i])
+                    mjd_temp.append(mjd1[i])
+                    #mag1_c.append(mag1[i])
+                    mag1_temp.append(mag1[i])
+                    #magerr1_c.append(magerr1[i])
+                    magerr1_temp.append(magerr1[i])
 
-                    mag2_c.append(mag2[j])
-                    magerr2_c.append(magerr2[j])
+                    #mag2_c.append(mag2[j])
+                    mag2_temp.append(mag2[j])
+                    #magerr2_c.append(magerr2[j])
+                    magerr2_temp.append(magerr2[j])
                 else:
                     continue
+
+            if len(mjd_temp):
+                mjd_c.append(mjd_temp[0])
+                mag1_c.append(mag1_temp[0])
+                magerr1_c.append(magerr1_temp[0])
+
+                mag2_mean= sum(mag2_temp)/len(mag2_temp)
+                magerr2_mean= sum(magerr2_temp)/len(magerr2_temp)
+
+                mag2_c.append(mag2_mean)
+                magerr2_c.append(magerr2_mean)
+
         return mjd_c, mag1_c, magerr1_c, mag2_c, magerr2_c
 
     else:
@@ -157,16 +179,38 @@ def mjd_Check(mjd1, mag1, magerr1, mjd2, mag2, magerr2, dt):
         magerr2_c=[]
                 
         for i in range(len(mjd1)):
+            mjd_temp=[]
+            mag1_temp= []
+            magerr1_temp= []
+            mag2_temp= []
+            magerr2_temp= []
             for j in range(len(mjd2)):
                 if min(mjd1_s[i], mjd1_p[i]) < mjd2[j] < max(mjd1_s[i], mjd1_p[i]):
-                    mjd_c.append(mjd1[i])
-                    mag1_c.append(mag1[i])
-                    magerr1_c.append(magerr1[i])
+                    #mjd_c.append(mjd1[i])
+                    mjd_temp.append(mjd1[i])
+                    #mag1_c.append(mag1[i])
+                    mag1_temp.append(mag1[i])
+                    #magerr1_c.append(magerr1[i])
+                    magerr1_temp.append(magerr1[i])
 
-                    mag2_c.append(mag2[j])
-                    magerr2_c.append(magerr2[j])
+                    #mag2_c.append(mag2[j])
+                    mag2_temp.append(mag2[j])
+                    #magerr2_c.append(magerr2[j])
+                    magerr2_temp.append(magerr2[j])
                 else:
                     continue
+
+            if len(mjd_temp):
+                mjd_c.append(mjd_temp[0])
+                mag1_c.append(mag1_temp[0])
+                magerr1_c.append(magerr1_temp[0])
+
+                mag2_mean= sum(mag2_temp)/len(mag2_temp)
+                magerr2_mean= sum(magerr2_temp)/len(magerr2_temp)
+
+                mag2_c.append(mag2_mean)
+                magerr2_c.append(magerr2_mean)
+            
         return mjd_c, mag1_c, magerr1_c, mag2_c, magerr2_c
           
 def color_Val_Converter(mjd, mag1, magerr1, mag2, magerr2, dist_mod):
@@ -247,6 +291,8 @@ def data_Grapher(snname, dist_mod, type, SNtype, dt):
             color_dat[i]= "NULL"
     
     #Checks if both filter mjds are in a certain range of each other for color data
+    if snname == 'SN2011fe':
+        print(color_dat)
     for i in range(len(color_dat)):
         #if list has Null in it skips it
         if color_dat[i] == "NULL":
@@ -294,7 +340,7 @@ fig.update_layout(height=625,template= "plotly_dark")
 
 app.layout= html.Div([
         html.Div([html.Label(['SNe Type:'], style={'font-weight': 'bold'}), dcc.Input(id='SNe-type', type='text', placeholder= 'Give SNe Type'), html.Button('Submit SNe Type', id='SNe-sub')], style={'width': '25%', 'display': 'inline-block'}),
-        html.Div([html.Label(['dt value:'], style={'font-weight': 'bold'}), dcc.Input(id='dt', type='text', placeholder= 'Give dt or ignore for def.', value= '')], style={'right':'auto','width': '25%', 'display': 'inline-block', 'position':'absolute'}),
+        html.Div([html.Label(['dt value:'], style={'font-weight': 'bold'}), dcc.Input(id='dt', type='text', placeholder= 'empty = 0.15 value', value= ''), html.Button('Submit dt Value', id='dt-sub')], style={'right':'auto','width': '25%', 'display': 'inline-block', 'position':'absolute'}),
         html.Br(), 
         html.Div(id= 'y-axis', style={'width': '25%', 'display': 'inline-block'}),
 
@@ -308,12 +354,12 @@ app.layout= html.Div([
 
 @app.callback(
     [Output("y-axis", "children"), Output("x-axis", "children")], 
-    [Input('SNe-sub', 'n_clicks'), Input('dt', 'value'), State('SNe-type', 'value')])
-def main(n_clicks,dt, SNtype):
+    [Input('SNe-sub', 'n_clicks'), Input('dt-sub', 'n_clicks'), State('SNe-type', 'value'), State('dt', 'value')])
+def main(n_clicks1,n_clicks2, SNtype, dt):
     
     global color_dat
 
-    if n_clicks is None:
+    if n_clicks1 is None or n_clicks2 is None:
         raise PreventUpdate
     else:
         #Asks for SNe type and dt input, defaults to dt=.1500 if no dt specified
@@ -366,7 +412,7 @@ symbols_names = list(set([i.replace("-thin", "") for i in symbols]))
 
 @app.callback(
     Output("SNe-scatter", "figure"),
-    [Input("y-dropdown", "value"), Input('x-dropdown', 'value'), Input('dt', 'value'), State('SNe-type', 'value')])
+    [Input("y-dropdown", "value"), Input('x-dropdown', 'value'), State('dt', 'value'), State('SNe-type', 'value')])
 def update_graph(y, x, dt, SNtype):
 
     #color_traces= cycle(trace_color)
@@ -389,14 +435,27 @@ def update_graph(y, x, dt, SNtype):
             
     layout= go.Layout(title= '('+y+')'+ '-' + '('+x+')' +' Diagram', yaxis=dict(title='('+y+')'), xaxis=dict(title='('+x+')'), height=625,template= "plotly_dark", legend_title= "Supernovae", showlegend=True, updatemenus=[
         dict(
-            type="buttons", showactive=False, xanchor="left", yanchor="top", x=0, y=1.08, buttons=list(
+            type="dropdown", showactive=False, xanchor="left", yanchor="top", x=0, y=1.08, buttons=list(
                 [dict(
-                        label="Error Bars",
+                        label="Hide Error Bars",
                         method="update",
-                        args=[{"error_x.visible": False,"error_y.visible": False}],
-                        args2= [{"error_x.visible": True,"error_y.visible": True}],
-                            
-                                )
+                        args=[{"error_x.visible": False,"error_y.visible": False}]
+                            ),
+                dict(
+                        label="Y & X-Axis Error Bars",
+                        method="update",
+                        args=[{"error_x.visible": True,"error_y.visible": True}]
+                            ),
+                dict(
+                        label="Y-Axis Error Bars",
+                        method="update",
+                        args=[{"error_x.visible": False,"error_y.visible": True}]
+                            ),
+                dict(
+                        label="X-Axis Error Bars",
+                        method="update",
+                        args=[{"error_x.visible": True,"error_y.visible": False}]
+                            )
                 ])),])
         
         
