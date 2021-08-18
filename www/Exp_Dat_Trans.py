@@ -33,8 +33,8 @@ def PlaceData(sn,ed,r,ref,meth):
         return 
     else: 
         try:
-            swift['ExplosionDate'][idex[0]]= AEDdat['ExplosionDate'][idex[0]]
-            swift['ExplosionDate'][idex[1]]= AEDdat['ExplosionDate'][idex[1]]
+            swift['Explosion_Date'][idex[0]]= AEDdat['ExplosionDate'][idex[0]]
+            swift['Explosion_Date'][idex[1]]= AEDdat['ExplosionDate'][idex[1]]
 
             swift['Reference'][idex[0]]= AEDdat['R'][idex[0]]
             swift['Reference'][idex[1]]= AEDdat['R'][idex[1]]
@@ -46,7 +46,7 @@ def PlaceData(sn,ed,r,ref,meth):
             swift['Method'][idex[1]]= AEDdat['Method'][idex[1]]
             return 
         except Exception:
-            swift['ExplosionDate'][idex[0]]= ed
+            swift['Explosion_Date'][idex[0]]= ed
             swift['Reference'][idex[0]]= r
             swift['ReferenceLinks'][idex[0]]= ref
             swift['Method'][idex[0]]= meth
@@ -76,7 +76,7 @@ def main():
     ind2= pd.Series(AEDin.apply(lambda row: GrabData(row['ind']) if pd.notna(row['ind']) else emptyData(row['ind']), axis=1))
     AEDdat= pd.DataFrame(ind2.tolist(), columns=['SNname', 'ExplosionDate', 'R', 'Reference', 'Method'], index= ind2.index)
 
-    AEDdat.apply(lambda row: PlaceData(row['SNname'], row['ExplosionDate'],row['R'], row['Reference'], row['Method']) if pd.notna(row['SNname']) else emptyGrave(row['SNname'],  row['ExplosionDate'],row['R'], row['Reference'],  row['Method']), axis=1)
+    AEDdat.apply(lambda row: PlaceData(row['SNname'], row['ExplosionDate'],row['R'], row['Reference'], row['Method']) if pd.notna(row['SNname']) else emptyGrave(row['SNname'],  row['ExplosionDate'], row['R'], row['Reference'],  row['Method']), axis=1)
 
 
     ind3= pd.Series(AEDswift.apply(lambda row: Grab_Swift_In(row['SNname']) if pd.notna(row['SNname']) else empty(row['SNname']), axis=1))
