@@ -493,8 +493,16 @@ def main():
     annotations=[
         dict(text="Filters:", font_size=15, height=32, showarrow=False,
         x=0, y=1.085, yref="paper", align="left")
-    ]
-)
+    ])
+
+    fig.add_layout_image(
+    dict(
+        source="https://pbrown801.github.io/SOUSA/www/sousa_galaxy.png",
+        xref="paper", yref="paper",
+        x=-.065, y=1.012,
+        sizex=0.2, sizey=0.18,
+        xanchor="left", yanchor="bottom"
+    ))
 
     #Saves graph as html file with this name format
     if SNtype == "":

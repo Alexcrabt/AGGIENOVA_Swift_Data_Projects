@@ -796,6 +796,15 @@ def main():
     ]
 )
 
+    fig.add_layout_image(
+    dict(
+        source="https://pbrown801.github.io/SOUSA/www/sousa_galaxy.png",
+        xref="paper", yref="paper",
+        x=-.065, y=1.012,
+        sizex=0.2, sizey=0.18,
+        xanchor="left", yanchor="bottom"
+    ))
+
     #Saves graph as html file with this name format
     if SNtype == "":
         fig.write_html("All_SNe_ColorLight_Curves.html")

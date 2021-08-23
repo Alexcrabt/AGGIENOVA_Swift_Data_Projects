@@ -19,7 +19,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
-import dash_daq as daq
+#import dash_daq as daq
 
 app = dash.Dash(__name__)
 
@@ -150,8 +150,11 @@ def mjd_Check(mjd1, mag1, magerr1, mjd2, mag2, magerr2, dt):
                     magerr2_temp.append(magerr2[j])
                 else:
                     continue
-
-            if len(mjd_temp):
+            
+            if not len(mjd_temp):
+                continue
+            else:
+                
                 mjd_c.append(mjd_temp[0])
                 mag1_c.append(mag1_temp[0])
                 magerr1_c.append(magerr1_temp[0])
@@ -161,6 +164,12 @@ def mjd_Check(mjd1, mag1, magerr1, mjd2, mag2, magerr2, dt):
 
                 mag2_c.append(mag2_mean)
                 magerr2_c.append(magerr2_mean)
+                '''
+                if snname == 'SN2011fe':
+                    print(mjd_temp)
+                    print(mag1_temp)
+                    print(mag2_temp)
+                '''
 
         return mjd_c, mag1_c, magerr1_c, mag2_c, magerr2_c
 
@@ -199,8 +208,9 @@ def mjd_Check(mjd1, mag1, magerr1, mjd2, mag2, magerr2, dt):
                     magerr2_temp.append(magerr2[j])
                 else:
                     continue
-
-            if len(mjd_temp):
+            if not len(mjd_temp):
+                continue
+            else:
                 mjd_c.append(mjd_temp[0])
                 mag1_c.append(mag1_temp[0])
                 magerr1_c.append(magerr1_temp[0])
@@ -210,6 +220,12 @@ def mjd_Check(mjd1, mag1, magerr1, mjd2, mag2, magerr2, dt):
 
                 mag2_c.append(mag2_mean)
                 magerr2_c.append(magerr2_mean)
+                '''
+                if snname == 'SN2011fe':
+                    print(mjd_temp)
+                    print(mag1_temp)
+                    print(mag2_temp)
+                '''
             
         return mjd_c, mag1_c, magerr1_c, mag2_c, magerr2_c
           
@@ -218,7 +234,7 @@ def color_Val_Converter(mjd, mag1, magerr1, mag2, magerr2, dist_mod):
     Converts mjd to days_since_detection, both mags to color, and both magerrs to a final error
     '''
     if not len(mjd) or not len(mag1) or not len(mag2):
-        raise print("Not enough data on  " + snname)
+        raise #print("Not enough data on  " + snname)
     else:
         color= [mag_a - mag_b for mag_a, mag_b in zip(mag1, mag2)]
         error= [np.sqrt((error1)**2 + (error2)**2) for error1, error2 in zip(magerr1, magerr2)]
@@ -227,7 +243,7 @@ def color_Val_Converter(mjd, mag1, magerr1, mag2, magerr2, dist_mod):
         If days_since_detection or color are nan lists it returns not enough data
         '''
         if np.isnan(mjd).all() == True or np.isnan(color).all() == True:
-            raise print("Not enough data on  " + snname)
+            raise #print("Not enough data on  " + snname)
         else:
             return mjd, color, error
 
@@ -238,7 +254,7 @@ def data_Grapher(snname, dist_mod, type, SNtype, dt):
     try:
         data= [i.strip().split() for i in open("./data/"+snname+ "_uvotB15.1.dat")]
     except:
-        print(str(snname) + ' is not in our data files')
+        #print(str(snname) + ' is not in our data files')
         return "NULL"
 
 
@@ -253,7 +269,7 @@ def data_Grapher(snname, dist_mod, type, SNtype, dt):
         magerr= sndata['magerr'].to_list()
     except:
         #prints out which supernovae we lack data on
-        print(str(snname) + ' is not in our data files')
+        #print(str(snname) + ' is not in our data files')
         return "NULL"
 
     
@@ -277,7 +293,7 @@ def data_Grapher(snname, dist_mod, type, SNtype, dt):
                     color_dat.append("NULL")
                     colors.append((filt1[i], filt2[j]))
                     #prints out exact SNe color we lack enough data on
-                    print("Not enough data on " + snname+"_"+filt1[i] +"-"+filt2[j])
+                    #print("Not enough data on " + snname+"_"+filt1[i] +"-"+filt2[j])
             filt2.pop(0)
             i= i+1
 
@@ -291,8 +307,7 @@ def data_Grapher(snname, dist_mod, type, SNtype, dt):
             color_dat[i]= "NULL"
     
     #Checks if both filter mjds are in a certain range of each other for color data
-    if snname == 'SN2011fe':
-        print(color_dat)
+
     for i in range(len(color_dat)):
         #if list has Null in it skips it
         if color_dat[i] == "NULL":
@@ -462,5 +477,5 @@ def update_graph(y, x, dt, SNtype):
     return {'data': traces, 'layout':layout}
     
     
-if __name__ == "__main__": app.run_server(debug=True)
+if __name__ == "__main__": app.run_server(port=8000, host='127.0.0.1',debug=True)
 
