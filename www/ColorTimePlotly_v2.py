@@ -201,6 +201,17 @@ def mjd_Check(mjd1, mag1, magerr1, mjd2, mag2, magerr2):
 
                 mag2_c.append(mag2_mean)
                 magerr2_c.append(magerr2_mean)
+
+        comb_data= pd.DataFrame({'mjd': mjd_c, 'mag1': mag1_c, 'magerr1': magerr1_c, 'mag2': mag2_c, 'magerr2': magerr2_c})
+        comb_data= comb_data.groupby('mag2').mean().reset_index()
+        comb_data= comb_data.sort_values(by= 'mjd', ascending= True).reset_index(drop=True)
+                
+        mjd_c= comb_data['mjd'].to_list()
+        mag1_c= comb_data['mag1'].to_list()
+        magerr1_c= comb_data['magerr1'].to_list()
+        mag2_c= comb_data['mag2'].to_list()
+        magerr2_c= comb_data['magerr2'].to_list()
+        
         return mjd_c, mag1_c, magerr1_c, mag2_c, magerr2_c
 
     else:
@@ -249,6 +260,17 @@ def mjd_Check(mjd1, mag1, magerr1, mjd2, mag2, magerr2):
 
                 mag2_c.append(mag2_mean)
                 magerr2_c.append(magerr2_mean)
+
+        comb_data= pd.DataFrame({'mjd': mjd_c, 'mag1': mag1_c, 'magerr1': magerr1_c, 'mag2': mag2_c, 'magerr2': magerr2_c})
+        comb_data= comb_data.groupby('mag2').mean().reset_index()
+        comb_data= comb_data.sort_values(by= 'mjd', ascending= True).reset_index(drop=True)
+                
+        mjd_c= comb_data['mjd'].to_list()
+        mag1_c= comb_data['mag1'].to_list()
+        magerr1_c= comb_data['magerr1'].to_list()
+        mag2_c= comb_data['mag2'].to_list()
+        magerr2_c= comb_data['magerr2'].to_list()
+
         return mjd_c, mag1_c, magerr1_c, mag2_c, magerr2_c
         
         

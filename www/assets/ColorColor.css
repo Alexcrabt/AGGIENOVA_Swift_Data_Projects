@@ -1,0 +1,61 @@
+body{
+    background: black;
+    background-image: url(./stars_black.jpg);
+
+}
+::placeholder{
+    color: white;
+    opacity: 0.8;;
+}
+
+#SNe-type{
+    background: black;
+    border:none;
+    color:white;
+    opacity: 0.8;
+}
+#SNe-sub{
+    color: white;
+    border: solid #505050;
+    border-radius: 20px;
+    background-color: #505050
+}
+
+#dt{
+    background: black;
+    border:none;
+    color:white;
+    opacity: 0.8;
+}
+#dt-sub{
+    color: white;
+    border: solid #505050;
+    border-radius: 20px;
+    background-color: #505050
+}
+
+/* input box */
+.Select-control {
+    background:#505050;
+}
+
+.is-open>.Select-control {
+    background-color: #505050;
+}
+
+/* changes the text color of input box */
+.Select-value-label {
+    color: white !important;
+}
+
+.Select--single > .Select-control .Select-value, .Select-placeholder {
+    border: solid #505050;
+    border-radius: 4px;
+}
+
+
+/* dropdown menu options */
+.VirtualizedSelectOption {
+    background-color: #505050;
+    color: white;
+ }

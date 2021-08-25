@@ -19,9 +19,6 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
-#import dash_daq as daq
-
-app = dash.Dash(__name__)
 
 #Must have plotly version 5.1.0 higher installed.
 #To do so use pip install plotly==5.1.0
@@ -164,12 +161,16 @@ def mjd_Check(mjd1, mag1, magerr1, mjd2, mag2, magerr2, dt):
 
                 mag2_c.append(mag2_mean)
                 magerr2_c.append(magerr2_mean)
-                '''
-                if snname == 'SN2011fe':
-                    print(mjd_temp)
-                    print(mag1_temp)
-                    print(mag2_temp)
-                '''
+
+        comb_data= pd.DataFrame({'mjd': mjd_c, 'mag1': mag1_c, 'magerr1': magerr1_c, 'mag2': mag2_c, 'magerr2': magerr2_c})
+        comb_data= comb_data.groupby('mag2').mean().reset_index()
+        comb_data= comb_data.sort_values(by= 'mjd', ascending= True).reset_index(drop=True)
+                
+        mjd_c= comb_data['mjd'].to_list()
+        mag1_c= comb_data['mag1'].to_list()
+        magerr1_c= comb_data['magerr1'].to_list()
+        mag2_c= comb_data['mag2'].to_list()
+        magerr2_c= comb_data['magerr2'].to_list()
 
         return mjd_c, mag1_c, magerr1_c, mag2_c, magerr2_c
 
@@ -220,12 +221,17 @@ def mjd_Check(mjd1, mag1, magerr1, mjd2, mag2, magerr2, dt):
 
                 mag2_c.append(mag2_mean)
                 magerr2_c.append(magerr2_mean)
-                '''
-                if snname == 'SN2011fe':
-                    print(mjd_temp)
-                    print(mag1_temp)
-                    print(mag2_temp)
-                '''
+
+
+        comb_data= pd.DataFrame({'mjd': mjd_c, 'mag1': mag1_c, 'magerr1': magerr1_c, 'mag2': mag2_c, 'magerr2': magerr2_c})
+        comb_data= comb_data.groupby('mag2').mean().reset_index()
+        comb_data= comb_data.sort_values(by= 'mjd', ascending= True).reset_index(drop=True)
+                
+        mjd_c= comb_data['mjd'].to_list()
+        mag1_c= comb_data['mag1'].to_list()
+        magerr1_c= comb_data['magerr1'].to_list()
+        mag2_c= comb_data['mag2'].to_list()
+        magerr2_c= comb_data['magerr2'].to_list()
             
         return mjd_c, mag1_c, magerr1_c, mag2_c, magerr2_c
           
@@ -247,7 +253,7 @@ def color_Val_Converter(mjd, mag1, magerr1, mag2, magerr2, dist_mod):
         else:
             return mjd, color, error
 
-def data_Grapher(snname, dist_mod, type, SNtype, dt):
+def data_Graber(snname, dist_mod, type, SNtype, dt):
     global colors, filt1
     
     #Grabs data file of given supernovae
@@ -350,16 +356,36 @@ def data_Grapher(snname, dist_mod, type, SNtype, dt):
     
     return plots_dat
 
+'''
+This section runs the dash app by first setting up a basic plot layout before runing the various
+inputs through the last 2 functions. It will repeat this for one or both functions depending on
+the inputs given in the dash app. 
+
+I didn't encase this section in a main() because I was having issues getting it to run properly,
+so think of everything past this section as main().
+'''
+external_stylesheets = ['assets/ColorColor.css']
+app = dash.Dash(__name__, external_stylesheets= external_stylesheets)
 fig=go.Figure()
 fig.update_layout(height=625,template= "plotly_dark")
+fig.add_layout_image(
+    dict(
+        source="https://pbrown801.github.io/SOUSA/www/sousa_galaxy.png",
+        xref="paper", yref="paper",
+        x=-.058, y=1.04,
+        sizex=0.2, sizey=0.18,
+        xanchor="left", yanchor="bottom"
+    ))
 
 app.layout= html.Div([
-        html.Div([html.Label(['SNe Type:'], style={'font-weight': 'bold'}), dcc.Input(id='SNe-type', type='text', placeholder= 'Give SNe Type'), html.Button('Submit SNe Type', id='SNe-sub')], style={'width': '25%', 'display': 'inline-block'}),
-        html.Div([html.Label(['dt value:'], style={'font-weight': 'bold'}), dcc.Input(id='dt', type='text', placeholder= 'empty = 0.15 value', value= ''), html.Button('Submit dt Value', id='dt-sub')], style={'right':'auto','width': '25%', 'display': 'inline-block', 'position':'absolute'}),
-        html.Br(), 
-        html.Div(id= 'y-axis', style={'width': '25%', 'display': 'inline-block'}),
 
-        html.Div(id= 'x-axis', style={'width': '25%', 'display': 'inline-block'}),
+        html.Div([html.Label(['SNe Type:'], style={'font-weight': 'bold', 'color':'white', 'background':'black'}), dcc.Input(id='SNe-type', type='text', placeholder= 'Give SNe Type'), html.Button('Submit SNe Type', id='SNe-sub')], style={'width': '25%', 'display': 'inline-block'}),
+        html.Div([html.Label(['dt value:'], style={'font-weight': 'bold', 'color':'white'}), dcc.Input(id='dt', type='text', placeholder= 'empty = 0.15 value', value= ''), html.Button('Submit dt Value', id='dt-sub')], style={'right':'auto','width': '25%', 'display': 'inline-block', 'position':'absolute'}),
+        html.Br(),
+        html.Br(),
+        dcc.Loading(id='load_dat', children=[
+        html.Div(id= 'y-axis', style={'width': '25%', 'display': 'inline-block'}),
+        html.Div(id= 'x-axis', style={'width': '25%', 'display': 'inline-block'})], type="default"),
 
         #html.Div([
             #daq.BooleanSwitch(id='error-btn', on=False, label="Error Bars:", labelPosition='top', style={'top':'9px', 'right':'auto', 'width':'6%','position': 'absolute', 'font-weight': 'bold'})], style={'display': 'inline-block'}),    
@@ -370,7 +396,7 @@ app.layout= html.Div([
 @app.callback(
     [Output("y-axis", "children"), Output("x-axis", "children")], 
     [Input('SNe-sub', 'n_clicks'), Input('dt-sub', 'n_clicks'), State('SNe-type', 'value'), State('dt', 'value')])
-def main(n_clicks1,n_clicks2, SNtype, dt):
+def plotly_Graph(n_clicks1,n_clicks2, SNtype, dt):
     
     global color_dat
 
@@ -398,7 +424,7 @@ def main(n_clicks1,n_clicks2, SNtype, dt):
         #type=""
 
         
-        plots_data= swift.apply(lambda row: data_Grapher(row['SNname'], row['Dist_mod_cor'], row['type'], SNtype, dt), axis=1)
+        plots_data= swift.apply(lambda row: data_Graber(row['SNname'], row['Dist_mod_cor'], row['type'], SNtype, dt), axis=1)
 
         color_dat=pd.DataFrame(columns=['UVW2-UVM2', 'UVW2-UVW1', 'UVW2-U','UVW2-B','UVW2-V','UVM2-UVW1','UVM2-U','UVM2-B','UVM2-V','UVW1-U','UVW1-B','UVW1-V','U-B','U-V','B-V'])
 
@@ -410,11 +436,10 @@ def main(n_clicks1,n_clicks2, SNtype, dt):
             else:
                 color_dat.loc[len(color_dat)]= plots_data[i]
 
-        label1= html.Label(['Y-Axis Color:'], style={'font-weight': 'bold'}),dcc.Dropdown(id= 'y-dropdown', options=[{'label': i, 'value': i} for i in color_dat], value='UVW2-UVM2')
-        label2= html.Label(['X-Axis Color:'], style={'font-weight': 'bold'}),dcc.Dropdown(id= 'x-dropdown', options=[{'label': i, 'value': i} for i in color_dat], value='UVW2-UVW1')
+        label1= html.Label(['Y-Axis Color:'], style={'font-weight': 'bold', 'color':'white'}),dcc.Dropdown(id= 'y-dropdown', options=[{'label': i, 'value': i} for i in color_dat], value='UVW2-UVM2')
+        label2= html.Label(['X-Axis Color:'], style={'font-weight': 'bold', 'color':'white'}),dcc.Dropdown(id= 'x-dropdown', options=[{'label': i, 'value': i} for i in color_dat], value='UVW2-UVW1')
         return label1, label2
     
-    #trace_color= px.colors.qualitative.Plotly
 
 line_styles_names = ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot']
 
@@ -428,7 +453,7 @@ symbols_names = list(set([i.replace("-thin", "") for i in symbols]))
 @app.callback(
     Output("SNe-scatter", "figure"),
     [Input("y-dropdown", "value"), Input('x-dropdown', 'value'), State('dt', 'value'), State('SNe-type', 'value')])
-def update_graph(y, x, dt, SNtype):
+def update_Graph(y, x, dt, SNtype):
 
     #color_traces= cycle(trace_color)
 
@@ -471,11 +496,17 @@ def update_graph(y, x, dt, SNtype):
                         method="update",
                         args=[{"error_x.visible": True,"error_y.visible": False}]
                             )
-                ])),])
-        
+                ]))], 
+        images=[
+            dict(
+        source="https://pbrown801.github.io/SOUSA/www/sousa_galaxy.png",
+        xref="paper", yref="paper",
+        x=-.06, y=1.012,
+        sizex=0.2, sizey=0.18,
+        xanchor="left", yanchor="bottom"
+    )])
         
     return {'data': traces, 'layout':layout}
     
-    
-if __name__ == "__main__": app.run_server(port=8000, host='127.0.0.1',debug=True)
+if __name__ == "__main__": app.run_server(port=7000, host='127.0.0.1',debug=True)
 
