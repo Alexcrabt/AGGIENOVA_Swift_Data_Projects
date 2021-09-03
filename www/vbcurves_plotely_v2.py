@@ -442,7 +442,7 @@ def main():
     fig.update_layout(
         updatemenus=[
             dict(
-                type="dropdown", showactive=False, xanchor="left", yanchor="top", x=0.08, y=1.08,active=0, buttons=list(
+                type="dropdown", showactive=False, xanchor="left", yanchor="top", x=0.08, y=1.08, buttons=list(
                     [   
                         dict(
                             label= "All",
@@ -499,7 +499,7 @@ def main():
     dict(
         source="https://pbrown801.github.io/SOUSA/www/sousa_galaxy.png",
         xref="paper", yref="paper",
-        x=-.065, y=1.012,
+        x=-.065, y=-0.156,
         sizex=0.2, sizey=0.18,
         xanchor="left", yanchor="bottom"
     ))
@@ -509,6 +509,7 @@ def main():
         fig.write_html("All_SNe_Light_Curves.html")
     else:
         fig.write_html("SN_type_"+SNtype+"_Light_Curve.html")
+      
 
     fig.show()
     

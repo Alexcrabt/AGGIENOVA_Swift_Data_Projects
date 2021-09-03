@@ -211,7 +211,7 @@ def mjd_Check(mjd1, mag1, magerr1, mjd2, mag2, magerr2):
         magerr1_c= comb_data['magerr1'].to_list()
         mag2_c= comb_data['mag2'].to_list()
         magerr2_c= comb_data['magerr2'].to_list()
-        
+
         return mjd_c, mag1_c, magerr1_c, mag2_c, magerr2_c
 
     else:
@@ -535,7 +535,7 @@ def BtnBoolList(count):
 
 def main():
     global dt
-
+    
     #Asks for SNe type and dt input, defaults to dt=.1500 if no dt specified
     SNtype= input("What type supernovae do you want to plot? (Press ENTER if you want to graph all):")
     dt= input('Please specify a dt value or click ENTER for default dt value: ')
@@ -572,7 +572,7 @@ def main():
 
     '''
     #If you want to run for only one supernove, specify snname, dis_mod, and type in function below
-    #and comment out lines 488 to 505 and uncomment out this section and specify 
+    #and comment out lines 556 to 571 and uncomment out this section and specify 
     #snname and dist_mod type.
     snname= "SN2008bo"
     dist_mod= float(31.57050702)
@@ -822,18 +822,18 @@ def main():
     dict(
         source="https://pbrown801.github.io/SOUSA/www/sousa_galaxy.png",
         xref="paper", yref="paper",
-        x=-.065, y=1.012,
+        x=-.065, y=-0.156,
         sizex=0.2, sizey=0.18,
         xanchor="left", yanchor="bottom"
     ))
+    
 
     #Saves graph as html file with this name format
     if SNtype == "":
         fig.write_html("All_SNe_ColorLight_Curves.html")
     else:
         fig.write_html("SN_type_"+SNtype+"_ColorLight_Curves.html")
-
-
+    
     fig.show()
     
 if __name__ == "__main__":  main()
