@@ -384,7 +384,7 @@ fig.add_layout_image(
     dict(
         source="https://pbrown801.github.io/SOUSA/www/sousa_galaxy.png",
         xref="paper", yref="paper",
-        x=-.058, y=1.04,
+        x=-.058, y=-0.156,
         sizex=0.2, sizey=0.18,
         xanchor="left", yanchor="bottom"
     ))
@@ -518,7 +518,7 @@ def update_Graph(y, x, dt, SNtype):
             dict(
         source="https://pbrown801.github.io/SOUSA/www/sousa_galaxy.png",
         xref="paper", yref="paper",
-        x=-.06, y=1.012,
+        x=-.065, y=-0.156,
         sizex=0.2, sizey=0.18,
         xanchor="left", yanchor="bottom"
     )])
