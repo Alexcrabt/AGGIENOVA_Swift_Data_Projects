@@ -261,12 +261,17 @@ def GrabSNData():
         '''
         page.status_code checks status of get requests, 403 is not good, 200 is great
         the x-rate-limit-remaining is how many searches are left until you get 403 error.
-        To get around this I've imposed a sleep limit in the code, od 30 seconds.
+        To get around this I've imposed a sleep limit in the code based on the time limit until
+        the search limit resets.
         '''
-        #print(page.status_code, SNname, page.headers.get('x-rate-limit-remaining'))
 
-        if int(page.headers.get('x-rate-limit-remaining')) == 0:
-            time.sleep(30)
+        try:
+            if int(page.headers.get('x-rate-limit-remaining')) == 0:
+                time.sleep(int(page.headers.get('x-rate-limit-reset')))
+            #print(page.headers.get('x-rate-limit-reset'), page.headers.get('x-rate-limit-remaining'))
+
+        except Exception:
+            time.sleep(60)
 
         soup = BeautifulSoup(page.content, 'html5lib')
     
@@ -644,7 +649,7 @@ def main():
         '''
         Reads in SwiftSN CSV and makes swift global
         '''
-        swift= pd.read_csv('www/NewSwiftSNweblist.csv')
+        swift= pd.read_csv('NewSwiftSNweblist.csv')
 
   
         '''
@@ -664,6 +669,7 @@ def main():
         '''
         print('retrieve type and host')
         swift= swift.fillna(GrabSNData())
+
         '''
         Executes function that grabs AV, AVerr, and source data on supernovae
         '''
@@ -714,7 +720,7 @@ def main():
 
         print('Save the csv file')
 
-        swift.to_csv('www/NewSwiftSNweblist.csv', index= False)
+        swift.to_csv('NewSwiftSNweblist.csv', index= False)
 
         '''Last segment of animate function that makes the animation run'''
         done= True
@@ -726,7 +732,7 @@ def main():
         I could use the swift name for the dataframe for the inputed SNe Names, this way it updates the info on the
         new names quicker.
         '''
-        swift_merge= pd.read_csv('www/NewSwiftSNweblist.csv')
+        swift_merge= pd.read_csv('NewSwiftSNweblist.csv')
 
         swift= pd.DataFrame(columns= swift_merge.columns)
 
@@ -814,7 +820,7 @@ def main():
         '''
         swift=swift.fillna('')
 
-        swift.to_csv('www/NewSwiftSNweblist.csv', index= False)
+        swift.to_csv('NewSwiftSNweblist.csv', index= False)
 
         '''Last segment of animate function that makes the animation run'''
         done= True
