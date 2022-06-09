@@ -12,32 +12,67 @@ body{
     color: white;
     opacity: 0.8;;
 }
-
-#SNe-type{
+#SNe-FLtype{
     background: black;
     border:none;
     color:white;
     opacity: 0.8;
 }
+#SNe-CLtype{
+    background: black;
+    border:none;
+    color:white;
+    opacity: 0.8;
+}
+#SNe-CCDtype{
+    background: black;
+    border:none;
+    color:white;
+    opacity: 0.8;
+}
+#SNe-FLsub{
+    color: white;
+    border: solid #505050;
+    border-radius: 20px;
+    background-color: #505050;
+}
+#SNe-CLsub{
+    color: white;
+    border: solid #505050;
+    border-radius: 20px;
+    background-color: #505050;
+}
 #SNe-sub{
     color: white;
     border: solid #505050;
     border-radius: 20px;
-    background-color: #505050
+    background-color: #505050;
 }
-
+#dtCL{
+    background: black;
+    border:none;
+    color:white;
+    opacity: 0.8;
+}
 #dt{
     background: black;
     border:none;
     color:white;
     opacity: 0.8;
 }
+#dt-CLsub{
+    color: white;
+    border: solid #505050;
+    border-radius: 20px;
+    background-color: #505050;
+}
 #dt-sub{
     color: white;
     border: solid #505050;
     border-radius: 20px;
-    background-color: #505050
+    background-color: #505050;
 }
+
 
 /* input box */
 .Select-control {
@@ -64,4 +99,3 @@ body{
     background-color: #505050;
     color: white;
  }
-
