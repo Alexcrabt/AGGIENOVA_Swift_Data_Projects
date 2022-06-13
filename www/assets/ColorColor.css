@@ -12,6 +12,9 @@ body{
     color: white;
     opacity: 0.8;;
 }
+a:link, a:visited, a:active{
+    color:rgb(38, 207, 38);
+}
 #SNe-FLtype{
     background: black;
     border:none;
