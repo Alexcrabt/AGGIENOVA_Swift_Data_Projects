@@ -8,7 +8,6 @@ import plotly.express as px
 from plotly.validators.scatter.marker import SymbolValidator
 
 from plotly.subplots import make_subplots
-from IPython.display import Image
 import pandas as pd
 import numpy as np
 
@@ -28,6 +27,8 @@ from base64 import b64encode
 # pip install dash_core_components
 # pip install dash_html_components
 # pip install pybase64
+#Make sure kaleido is installed, you don't need to import the package
+# pip install kaleido
 
 def sn_Data(data):
     '''
@@ -1393,4 +1394,3 @@ def update_CCDGraph(y, x, templ, rend, dt, SNtype):
 
 #To turn off debug feature just remove debug variable below.
 if __name__ == "__main__": app.run_server(debug=True)
-

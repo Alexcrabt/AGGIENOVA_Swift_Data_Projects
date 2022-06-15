@@ -27,6 +27,8 @@ from base64 import b64encode
 # pip install dash_core_components
 # pip install dash_html_components
 # pip install pybase64
+#Make sure kaleido is installed, you don't need to import the package
+# pip install kaleido
 
 def sn_Data(data):
     '''
