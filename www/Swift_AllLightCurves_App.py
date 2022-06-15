@@ -1393,4 +1393,4 @@ def update_CCDGraph(y, x, templ, rend, dt, SNtype):
         return dcc.Graph(figure=fig)
 
 #To turn off debug feature just remove debug variable below.
-if __name__ == "__main__": app.run_server(debug=True)
+if __name__ == "__main__": app.run_server(debug=False)

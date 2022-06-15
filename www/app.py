@@ -1028,14 +1028,14 @@ def update_FLGraph(y, templ,rend, SNtype):
         if y != 'All Filters':
             fig.update_layout(legend=dict( orientation="h", yanchor="top", y=1.08, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
 
-            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
+            img_bytes = fig.to_image(format="jpg", height=625, width=1350, engine="kaleido")
             encoding = b64encode(img_bytes).decode()
             img_b64 = "data:image/jpg;base64," + encoding
             return html.Img(src=img_b64)
         else:
             fig.update_layout(legend=dict( orientation="h", yanchor="top", y=-0.2, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
 
-            img_bytes = fig.to_image(format="jpg", height=700, width=1350)
+            img_bytes = fig.to_image(format="jpg", height=700, width=1350, engine="kaleido")
             encoding = b64encode(img_bytes).decode()
             img_b64 = "data:image/jpg;base64," + encoding
             return html.Img(src=img_b64)
@@ -1044,14 +1044,14 @@ def update_FLGraph(y, templ,rend, SNtype):
         if y != 'All Filters':
             fig.update_layout(showlegend=False, updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
 
-            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
+            img_bytes = fig.to_image(format="jpg", height=625, width=1350, engine="kaleido")
             encoding = b64encode(img_bytes).decode()
             img_b64 = "data:image/jpg;base64," + encoding
             return html.Img(src=img_b64)
         else:
             fig.update_layout(showlegend=False, updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
 
-            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
+            img_bytes = fig.to_image(format="jpg", height=625, width=1350, engine="kaleido")
             encoding = b64encode(img_bytes).decode()
             img_b64 = "data:image/jpg;base64," + encoding
             return html.Img(src=img_b64)
@@ -1061,7 +1061,7 @@ def update_FLGraph(y, templ,rend, SNtype):
             fig.update_traces(error_y=dict(visible=True))
             fig.update_layout(legend=dict( orientation="h", yanchor="top", y=1.08, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
 
-            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
+            img_bytes = fig.to_image(format="jpg", height=625, width=1350, engine="kaleido")
             encoding = b64encode(img_bytes).decode()
             img_b64 = "data:image/jpg;base64," + encoding
             return html.Img(src=img_b64)
@@ -1069,7 +1069,7 @@ def update_FLGraph(y, templ,rend, SNtype):
             fig.update_traces(error_y=dict(visible=True))
             fig.update_layout(legend=dict( orientation="h", yanchor="top", y=-0.2, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
 
-            img_bytes = fig.to_image(format="jpg", height=700, width=1350)
+            img_bytes = fig.to_image(format="jpg", height=700, width=1350, engine="kaleido")
             encoding = b64encode(img_bytes).decode()
             img_b64 = "data:image/jpg;base64," + encoding
             return html.Img(src=img_b64)
@@ -1079,7 +1079,7 @@ def update_FLGraph(y, templ,rend, SNtype):
             fig.update_traces(error_y=dict(visible=True))
             fig.update_layout(showlegend=False, updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
 
-            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
+            img_bytes = fig.to_image(format="jpg", height=625, width=1350, engine="kaleido")
             encoding = b64encode(img_bytes).decode()
             img_b64 = "data:image/jpg;base64," + encoding
             return html.Img(src=img_b64)
@@ -1087,7 +1087,7 @@ def update_FLGraph(y, templ,rend, SNtype):
             fig.update_traces(error_y=dict(visible=True))
             fig.update_layout(showlegend=False, updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
 
-            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
+            img_bytes = fig.to_image(format="jpg", height=625, width=1350, engine="kaleido")
             encoding = b64encode(img_bytes).decode()
             img_b64 = "data:image/jpg;base64," + encoding
             return html.Img(src=img_b64)
