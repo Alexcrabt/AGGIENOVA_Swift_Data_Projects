@@ -15,6 +15,7 @@ body{
 a:link, a:visited, a:active{
     color:rgb(38, 207, 38);
 }
+
 #SNe-FLtype{
     background: black;
     border:none;
@@ -38,18 +39,24 @@ a:link, a:visited, a:active{
     border: solid #505050;
     border-radius: 20px;
     background-color: #505050;
+    outline: none;
+    box-shadow: none;
 }
 #SNe-CLsub{
     color: white;
     border: solid #505050;
     border-radius: 20px;
     background-color: #505050;
+    outline: none;
+    box-shadow: none;
 }
 #SNe-sub{
     color: white;
     border: solid #505050;
     border-radius: 20px;
     background-color: #505050;
+    outline: none;
+    box-shadow: none;
 }
 #dtCL{
     background: black;
@@ -68,12 +75,16 @@ a:link, a:visited, a:active{
     border: solid #505050;
     border-radius: 20px;
     background-color: #505050;
+    outline: none;
+    box-shadow: none;
 }
 #dt-sub{
     color: white;
     border: solid #505050;
     border-radius: 20px;
     background-color: #505050;
+    outline: none;
+    box-shadow: none;
 }
 
 

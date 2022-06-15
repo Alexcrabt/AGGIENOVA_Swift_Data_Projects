@@ -8,7 +8,7 @@ import plotly.express as px
 from plotly.validators.scatter.marker import SymbolValidator
 
 from plotly.subplots import make_subplots
-
+from IPython.display import Image
 import pandas as pd
 import numpy as np
 
@@ -18,6 +18,7 @@ from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
+from base64 import b64encode
 
 #Must have plotly version 5.1.0 higher installed.
 #To do so use pip install plotly==5.1.0
@@ -26,6 +27,7 @@ from dash.exceptions import PreventUpdate
 # pip install dash
 # pip install dash_core_components
 # pip install dash_html_components
+# pip install pybase64
 
 def sn_Data(data):
     '''
@@ -697,16 +699,6 @@ app = dash.Dash(__name__, external_stylesheets= external_stylesheets, assets_fol
 
 server = app.server
 
-fig1=go.Figure()
-fig1.update_layout(height=625,template= "plotly_dark")
-
-fig2=go.Figure()
-fig2.update_layout(height=625,template= "plotly_dark")
-
-
-fig3=go.Figure()
-fig3.update_layout(height=625,template= "plotly_dark")
-
 app.layout= html.Div([
 
     html.Div([html.H1(children=[
@@ -731,10 +723,12 @@ app.layout= html.Div([
         #dcc loading gives the loading effect seen. Includes the filter dropdown lists inside
         dcc.Loading(id='load_FLdat', children=[
         html.Div(id='filter', style={'width': '25%', 'display':'inline-block'}),
-        html.Div(id='fl-space', style={'width':'4px', 'height':'auto', 'display':'inline-block'}),
-        html.Div(id='FLtemplate', style={'width':'25%', 'display':'inline-block'})], type="default"),
+        html.Div(id='fl-space1',style={'width':'4px', 'height':'auto', 'display':'inline-block'}),
+        html.Div(id='FLtemplate', style={'width':'25%', 'display':'inline-block'}),
+        html.Div(id='fl-space2',style={'width':'4px', 'height':'auto', 'display':'inline-block'}),
+        html.Div(id='FLstatic', style={'width':'25%', 'display':'inline-block'})], type="default"),
 
-        html.Div(dcc.Graph(id="SNe-FL", figure=fig1)),
+        html.Div(id="SNe-FL"),
 
         html.Br(),
         html.Br(),
@@ -751,11 +745,14 @@ app.layout= html.Div([
         #dcc loading gives the loading effect seen. Includes the color dropdown lists inside
         dcc.Loading(id='load_CLdat', children=[
         html.Div(id= 'color', style={'width': '25%', 'display': 'inline-block'}),
-        html.Div(id='cl-space', style={'width':'4px', 'height':'auto', 'display':'inline-block'}),
-        html.Div(id='CLtemplate', style={'width': '25%', 'display': 'inline-block'})], type="default"),
+        html.Div(id='cl-space1', style={'width':'4px', 'height':'auto', 'display':'inline-block'}),
+        html.Div(id='CLtemplate', style={'width': '25%', 'display': 'inline-block'}),
+        html.Div(id='cl-space2',style={'width':'4px', 'height':'auto', 'display':'inline-block'}),
+        html.Div(id='CLstatic', style={'width':'25%', 'display':'inline-block'})], type="default"),
+        
 
         #Makes the color light curve graph
-        html.Div(dcc.Graph(id="SNe-CL", figure=fig2)),
+        html.Div(id="SNe-CL"),
 
         html.Br(),
         html.Br(),
@@ -776,10 +773,12 @@ app.layout= html.Div([
         html.Div(id='ccd-space1', style={'width':'4px', 'height':'auto', 'display':'inline-block'}),
         html.Div(id= 'x-axis', style={'width': '25%', 'display': 'inline-block'}),
         html.Div(id='ccd-space2', style={'width':'4px', 'height':'auto', 'display':'inline-block'}),
-        html.Div(id='CCDtemplate', style={'width': '25%', 'display': 'inline-block'})], type="default"),
+        html.Div(id='CCDtemplate', style={'width': '25%', 'display': 'inline-block'}),
+        html.Div(id='ccd-space3',style={'width':'4px', 'height':'auto', 'display':'inline-block'}),
+        html.Div(id='CCDstatic', style={'width':'25%', 'display':'inline-block'})], type="default"),
 
         #Makes the graph
-        html.Div(dcc.Graph(id="SNe-scatter", figure=fig3))
+        html.Div(id="SNe-scatter")
     ])
 
 
@@ -788,7 +787,7 @@ app.layout= html.Div([
 returns the outputs of that function to the specific dash html.Div referenced.
 '''
 @app.callback(
-    [Output('filter', 'children'), Output('FLtemplate', 'children')],
+    [Output('filter', 'children'), Output('FLtemplate', 'children'), Output('FLstatic', 'children')],
     [Input('SNe-FLsub', 'n_clicks'), State('SNe-FLtype', 'value')])
 def plotly_FLGraph(n_clicks, SNtype):
     global filter_dat, all_FLdat
@@ -839,12 +838,16 @@ def plotly_FLGraph(n_clicks, SNtype):
 
     label2= html.Label(['Plot Background Theme:'], style={'font-weight':'bold', 'color':'white'}), dcc.Dropdown(id= 'fl-template', options=[{'label': i[0], 'value': i[1]} for i in themes],value= 'plotly_dark',searchable=False)
 
-    return label1, label2
+    render_opt= [["Interactive", "interactive"], ["Image", "image"], ["Image W/ Error Bars", "image + error bars"], ["Image W/O Legend", "image + no leg"], ["Image W/ Error Bars W/O Legend", "image + error bars + no leg"]]
+
+    label3= html.Label(['Choose Render Option:'], style={'font-weight':'bold', 'color':'white'}), dcc.Dropdown(id='fl-static', options=[{'label': i[0], 'value': i[1]} for i in render_opt], value='interactive', searchable=False)
+
+    return label1, label2, label3
 
 
 
 @app.callback(
-    [Output('color', 'children'), Output('CLtemplate', 'children')],
+    [Output('color', 'children'), Output('CLtemplate', 'children'), Output('CLstatic', 'children')],
     [Input('SNe-CLsub', 'n_clicks'), Input('dt-CLsub', 'n_clicks'), State('SNe-CLtype', 'value'), State('dtCL', 'value')])
 def plotly_CLGraph(n_clicks1, n_clicks2, SNtype, dt):
     global color_CLdat, all_CLdat
@@ -890,11 +893,15 @@ def plotly_CLGraph(n_clicks1, n_clicks2, SNtype, dt):
             searchable=False)
 
         label2= html.Label(['Plot Background Theme:'], style={'font-weight':'bold', 'color':'white'}), dcc.Dropdown(id= 'cl-template', options=[{'label': i[0], 'value': i[1]} for i in themes],value= 'plotly_dark',searchable=False)
+        
+        render_opt= [["Interactive", "interactive"], ["Image", "image"], ["Image W/ Error Bars", "image + error bars"], ["Image W/O Legend", "image + no leg"], ["Image W/ Error Bars W/O Legend", "image + error bars + no leg"]]
 
-        return label1, label2
+        label3= html.Label(['Choose Render Option:'], style={'font-weight':'bold', 'color':'white'}), dcc.Dropdown(id='cl-static', options=[{'label': i[0], 'value': i[1]} for i in render_opt], value='interactive', searchable=False)
+
+        return label1, label2, label3
 
 @app.callback(
-    [Output("y-axis", "children"), Output("x-axis", "children"), Output("CCDtemplate", "children")],
+    [Output("y-axis", "children"), Output("x-axis", "children"), Output("CCDtemplate", "children"), Output('CCDstatic', 'children')],
     [Input('SNe-sub', 'n_clicks'), Input('dt-sub', 'n_clicks'), State('SNe-CCDtype', 'value'), State('dt', 'value')])
 def plotly_Graph(n_clicks1,n_clicks2, SNtype, dt):
     global color_CCDdat
@@ -936,7 +943,12 @@ def plotly_Graph(n_clicks1,n_clicks2, SNtype, dt):
         
         label3= html.Label(['Plot Background Theme:'], style={'font-weight':'bold', 'color':'white'}), dcc.Dropdown(id= 'ccd-template', options=[{'label': i[0], 'value': i[1]} for i in themes],value= 'plotly_dark',searchable=False)
         
-        return label1, label2, label3
+        render_opt= [["Interactive", "interactive"], ["Image", "image"], ["Image W/ X & Y Error Bars", "image + error bars"], ["Image W/ Y Error Bars", "image + yerror bars"], ["Image W/ X Error Bars", "image + xerror bars"], ["Image W/O Legend", "image + no leg"], ["Image W/ X & Y Error Bars W/O Legend", "image + error bars + no leg"], ["Image W/ Y Error Bars W/O Legend", "image + yerror bars + no leg"], ["Image W/ X Error Bars W/O Legend", "image + xerror bars + no leg"],]
+
+        label4= html.Label(['Choose Render Option:'], style={'font-weight':'bold', 'color':'white'}), dcc.Dropdown(id='ccd-static', options=[{'label': i[0], 'value': i[1]} for i in render_opt], value='interactive', searchable=False)
+
+
+        return label1, label2, label3, label4
 
 #List of line styles to cycle through in update_Graph.
 line_styles_names = ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot']
@@ -949,10 +961,11 @@ symbols_names = list(set([i.replace("-thin", "") for i in symbols]))
 trace_color= px.colors.qualitative.Plotly
 
 @app.callback(
-    Output('SNe-FL', 'figure'),
-    [Input('filter-dropdown', 'value'), Input('fl-template', 'value'), State('SNe-FLtype', 'value')]
+    Output('SNe-FL', 'children'),
+    [Input('filter-dropdown', 'value'), Input('fl-template', 'value'), Input('fl-static', 'value'), State('SNe-FLtype', 'value')]
 )
-def update_FLGraph(y, templ, SNtype):
+def update_FLGraph(y, templ,rend, SNtype):
+    fig= go.Figure()
     #Cycles through line styles
     line_style= cycle(line_styles_names)
 
@@ -964,9 +977,6 @@ def update_FLGraph(y, templ, SNtype):
     #Makes copy of color_dat dataframe so the original is not tampered with and can be reused.
     filter_data= filter_dat
     all_data= all_FLdat
-    
-    #sets up trace list.
-    traces=[]
 
     if y != 'All Filters':
         #For loop makes and appends traces to traces list.
@@ -978,9 +988,9 @@ def update_FLGraph(y, templ, SNtype):
                 line= next(line_style)
                 color= next(c)
 
-                traces.append(go.Scatter(x= filter_data[y][i][1], y= filter_data[y][i][2],  error_y= dict(array= filter_data[y][i][3], type= 'data', visible= False), marker= {'symbol': mark, 'color': color }, line={'dash': line, 'color': color}, mode= "lines+markers", name= filter_data[y][i][0]))
+                fig.add_trace(go.Scatter(x= filter_data[y][i][1], y= filter_data[y][i][2],  error_y= dict(array= filter_data[y][i][3], type= 'data', visible= False), marker= {'symbol': mark, 'color': color }, line={'dash': line, 'color': color}, mode= "lines+markers", name= filter_data[y][i][0]))
         
-        layout= go.Layout(title= y + " Supernovae " + SNtype + " Light Curves", yaxis=dict(title="Absolute Magnitude", autorange="reversed"), xaxis=dict(title="Days since first detection"), height=625,template= templ, legend_title= y + " Supernovae", showlegend=True, updatemenus=[
+        fig.update_layout(title= y + " Supernovae " + SNtype + " Light Curves", yaxis=dict(title="Absolute Magnitude", autorange="reversed"), xaxis=dict(title="Days since first detection"), height=625,template= templ, legend_title= y + " Supernovae:", showlegend=True, updatemenus=[
         dict(
                 type="buttons", showactive=False, xanchor="left", yanchor="top", x=0, y=1.08, buttons=list(
                     [   dict(
@@ -989,7 +999,7 @@ def update_FLGraph(y, templ, SNtype):
                             args=[{"error_y.visible": False}],
                             args2= [{"error_y.visible": True}],
 
-                            )
+                            ) 
                 ]))])
     else:
         for i in range(len(all_data)):
@@ -999,9 +1009,9 @@ def update_FLGraph(y, templ, SNtype):
                 mark= next(marker)
                 line= next(line_style)
                 color= next(c)
-                traces.append(go.Scatter(x= all_data[y][i][1], y= all_data[y][i][2],  error_y= dict(array= all_data[y][i][3], type= 'data', visible= False), marker= {'symbol': mark, 'color': color }, line={'dash': line, 'color': color}, mode= "lines+markers", name= all_data[y][i][0]+'_'+ all_data[y][i][4]))
+                fig.add_trace(go.Scatter(x= all_data[y][i][1], y= all_data[y][i][2],  error_y= dict(array= all_data[y][i][3], type= 'data', visible= False), marker= {'symbol': mark, 'color': color }, line={'dash': line, 'color': color}, mode= "lines+markers", name= all_data[y][i][0]+'_'+ all_data[y][i][4]))
 
-        layout= go.Layout(title= "All Supernovae " + SNtype + " Filter Light Curves", yaxis=dict(title="Absolute Magnitude", autorange="reversed"), xaxis=dict(title="Days since first detection"), height=625,template= templ, legend_title= "Supernovae Type " + SNtype + "'s", showlegend=True, updatemenus=[
+        fig.update_layout(title= "All Supernovae " + SNtype + " Filter Light Curves", yaxis=dict(title="Absolute Magnitude", autorange="reversed"), xaxis=dict(title="Days since first detection"), height=625,template= templ, legend_title= "Supernovae Type " + SNtype + "'s:", showlegend=True, updatemenus=[
         dict(
                 type="buttons", showactive=False, xanchor="left", yanchor="top", x=0, y=1.08, buttons=list(
                     [   dict(
@@ -1013,12 +1023,80 @@ def update_FLGraph(y, templ, SNtype):
                             )
                 ]))])
 
-    return {'data': traces, 'layout':layout}
+    if rend == 'image':
+        if y != 'All Filters':
+            fig.update_layout(legend=dict( orientation="h", yanchor="top", y=1.08, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+
+            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
+            encoding = b64encode(img_bytes).decode()
+            img_b64 = "data:image/jpg;base64," + encoding
+            return html.Img(src=img_b64)
+        else:
+            fig.update_layout(legend=dict( orientation="h", yanchor="top", y=-0.2, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+
+            img_bytes = fig.to_image(format="jpg", height=700, width=1350)
+            encoding = b64encode(img_bytes).decode()
+            img_b64 = "data:image/jpg;base64," + encoding
+            return html.Img(src=img_b64)
+
+    elif rend == 'image + no leg':
+        if y != 'All Filters':
+            fig.update_layout(showlegend=False, updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+
+            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
+            encoding = b64encode(img_bytes).decode()
+            img_b64 = "data:image/jpg;base64," + encoding
+            return html.Img(src=img_b64)
+        else:
+            fig.update_layout(showlegend=False, updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+
+            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
+            encoding = b64encode(img_bytes).decode()
+            img_b64 = "data:image/jpg;base64," + encoding
+            return html.Img(src=img_b64)
+
+    elif rend == 'image + error bars':
+        if y != 'All Filters':
+            fig.update_traces(error_y=dict(visible=True))
+            fig.update_layout(legend=dict( orientation="h", yanchor="top", y=1.08, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+
+            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
+            encoding = b64encode(img_bytes).decode()
+            img_b64 = "data:image/jpg;base64," + encoding
+            return html.Img(src=img_b64)
+        else: 
+            fig.update_traces(error_y=dict(visible=True))
+            fig.update_layout(legend=dict( orientation="h", yanchor="top", y=-0.2, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+
+            img_bytes = fig.to_image(format="jpg", height=700, width=1350)
+            encoding = b64encode(img_bytes).decode()
+            img_b64 = "data:image/jpg;base64," + encoding
+            return html.Img(src=img_b64)
+
+    elif rend == 'image + error bars + no leg':
+        if y != 'All Filters':
+            fig.update_traces(error_y=dict(visible=True))
+            fig.update_layout(showlegend=False, updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+
+            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
+            encoding = b64encode(img_bytes).decode()
+            img_b64 = "data:image/jpg;base64," + encoding
+            return html.Img(src=img_b64)
+        else: 
+            fig.update_traces(error_y=dict(visible=True))
+            fig.update_layout(showlegend=False, updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+
+            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
+            encoding = b64encode(img_bytes).decode()
+            img_b64 = "data:image/jpg;base64," + encoding
+            return html.Img(src=img_b64)
+    else:
+        return dcc.Graph(figure=fig)
 
 @app.callback(
-    Output('SNe-CL', 'figure'),
-    [Input('color-dropdown', 'value'),Input('cl-template', 'value'), State('dtCL', 'value'), State('SNe-CLtype', 'value')])
-def update_CLGraph(y,templ, dt, SNtype):
+    Output('SNe-CL', 'children'),
+    [Input('color-dropdown', 'value'),Input('cl-template', 'value'), Input('cl-static', 'value'), State('dtCL', 'value'), State('SNe-CLtype', 'value')])
+def update_CLGraph(y,templ, rend, dt, SNtype):
     fig= make_subplots(rows=3, cols=1, shared_xaxes=True, vertical_spacing=0)
 
     #Edit axis orientation and set yaxis visibility and domain size
@@ -1063,7 +1141,7 @@ def update_CLGraph(y,templ, dt, SNtype):
                 filt= (color_data[y][i][10][0], color_data[y][i][10][1])
 
         #Layout sets up layout of the graph such as the error buttons.
-        fig.update_layout(title= y+" Supernovae "+SNtype+ " Color Light Curves", xaxis3=dict(title="Days since first detection"), yaxis=dict(visible=False), yaxis2=dict(visible=False), yaxis3=dict(title= y, domain= [0,1]), legend_title= "Supernovae" + " Type "+ SNtype+"'s", height=625,template= templ, showlegend=True, updatemenus=[
+        fig.update_layout(title= y+" Supernovae "+SNtype+ " Color Light Curves", xaxis3=dict(title="Days since first detection"), yaxis=dict(visible=False), yaxis2=dict(visible=False), yaxis3=dict(title= y, domain= [0,1]), legend_title= y + " Supernovae:", height=625,template= templ, showlegend=True, updatemenus=[
             dict(
                     type="buttons", showactive=False, xanchor="left", yanchor="top", x=0.0, y=1.08, buttons=list(
                         [   dict(
@@ -1104,7 +1182,7 @@ def update_CLGraph(y,templ, dt, SNtype):
                 fig.add_trace(go.Scatter(x= all_data[y][i][7], y= all_data[y][i][8], error_y= dict(array= all_data[y][i][9], type= 'data', visible= False), marker= {'symbol': mark , 'color':color}, line={'dash': line, 'color':color}, mode= "lines+markers", name= all_data[y][i][0]+'_'+all_data[y][i][10][0] +'-'+all_data[y][i][10][1]), row=3, col=1)
 
         #Layout sets up layout of the graph such as the error buttons.
-        fig.update_layout(title= "All Supernovae " + SNtype+ " Color Light Curves", xaxis3=dict(title="Days since first detection"),yaxis3=dict(title="All Type "+ SNtype+ " Colors"), legend_title= "Supernovae" + " Type "+ SNtype+"'s", height=625,template= templ, showlegend=True, updatemenus=[
+        fig.update_layout(title= "All Supernovae " + SNtype+ " Color Light Curves", xaxis3=dict(title="Days since first detection"),yaxis3=dict(title="All Type "+ SNtype+ " Colors"), legend_title= "Supernovae" + " Type "+ SNtype+"'s:", height=625,template= templ, showlegend=True, updatemenus=[
 
         dict(
                 type="buttons", showactive=False, xanchor="left", yanchor="top", x=0.0, y=1.08, buttons=list(
@@ -1118,12 +1196,82 @@ def update_CLGraph(y,templ, dt, SNtype):
                     ]))])
 
     #returns traces and layout to update graph.
-    return fig
+    if rend == 'image':
+        if y != 'All Colors':
+            fig.update_layout(legend=dict( orientation="h", yanchor="top", y=1.08, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+
+            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
+            encoding = b64encode(img_bytes).decode()
+            img_b64 = "data:image/jpg;base64," + encoding
+            return html.Img(src=img_b64)
+        else:
+            fig.update_layout(legend=dict( orientation="h", yanchor="top", y=-0.2, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+
+            img_bytes = fig.to_image(format="jpg", height=700, width=1350)
+            encoding = b64encode(img_bytes).decode()
+            img_b64 = "data:image/jpg;base64," + encoding
+            return html.Img(src=img_b64)
+
+    elif rend == 'image + no leg':
+        if y != 'All Colors':
+            fig.update_layout(showlegend=False, updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+
+            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
+            encoding = b64encode(img_bytes).decode()
+            img_b64 = "data:image/jpg;base64," + encoding
+            return html.Img(src=img_b64)
+        else:
+            fig.update_layout(showlegend=False, updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+
+            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
+            encoding = b64encode(img_bytes).decode()
+            img_b64 = "data:image/jpg;base64," + encoding
+            return html.Img(src=img_b64)
+
+    elif rend == 'image + error bars':
+        if y != 'All Colors':
+            fig.update_traces(error_y=dict(visible=True))
+            fig.update_layout(legend=dict( orientation="h", yanchor="top", y=1.08, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+
+            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
+            encoding = b64encode(img_bytes).decode()
+            img_b64 = "data:image/jpg;base64," + encoding
+            return html.Img(src=img_b64)
+        else: 
+            fig.update_traces(error_y=dict(visible=True))
+            fig.update_layout(legend=dict( orientation="h", yanchor="top", y=-0.2, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+
+            img_bytes = fig.to_image(format="jpg", height=700, width=1350)
+            encoding = b64encode(img_bytes).decode()
+            img_b64 = "data:image/jpg;base64," + encoding
+            return html.Img(src=img_b64)
+
+    elif rend == 'image + error bars + no leg':
+        if y != 'All Colors':
+            fig.update_traces(error_y=dict(visible=True))
+            fig.update_layout(showlegend=False, updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+
+            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
+            encoding = b64encode(img_bytes).decode()
+            img_b64 = "data:image/jpg;base64," + encoding
+            return html.Img(src=img_b64)
+        else: 
+            fig.update_traces(error_y=dict(visible=True))
+            fig.update_layout(showlegend=False, updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+
+            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
+            encoding = b64encode(img_bytes).decode()
+            img_b64 = "data:image/jpg;base64," + encoding
+            return html.Img(src=img_b64)
+    else:
+        return dcc.Graph(figure=fig)
+
 
 @app.callback(
-    Output("SNe-scatter", "figure"),
-    [Input("y-dropdown", "value"), Input('x-dropdown', 'value'), Input('ccd-template', 'value'), State('dt', 'value'), State('SNe-CCDtype', 'value')])
-def update_CCDGraph(y, x, templ, dt, SNtype):
+    Output("SNe-scatter", "children"),
+    [Input("y-dropdown", "value"), Input('x-dropdown', 'value'), Input('ccd-template', 'value'), Input('ccd-static', 'value'), State('dt', 'value'), State('SNe-CCDtype', 'value')])
+def update_CCDGraph(y, x, templ, rend, dt, SNtype):
+    fig=go.Figure()
     #Cycles through line styles
     line_style= cycle(line_styles_names)
 
@@ -1133,9 +1281,6 @@ def update_CCDGraph(y, x, templ, dt, SNtype):
     #Makes copy of color_dat dataframe so the original is not tampered with and can be reused.
     color_data= color_CCDdat
 
-    #sets up trace list.
-    traces=[]
-
     #For loop makes and appends traces to traces list.
     for i in range(len(color_data[x])):
         if pd.isna(color_data[x][i]) or pd.isna(color_data[y][i]):
@@ -1143,10 +1288,10 @@ def update_CCDGraph(y, x, templ, dt, SNtype):
         else:
             color_c= mjd_Check(color_data[x][i][1], color_data[x][i][2], color_data[x][i][3], color_data[y][i][1], color_data[y][i][2], color_data[y][i][3], dt)
 
-            traces.append(go.Scatter(x= color_c[1], y= color_c[3],  error_x= dict(array= color_c[2], type= 'data', visible= False), error_y= dict(array= color_c[4], type= 'data', visible= False), marker= {'symbol': next(marker) }, line={'dash': next(line_style)}, mode= "lines+markers", name= color_data[y][i][0]+'_'+SNtype))
+            fig.add_trace(go.Scatter(x= color_c[1], y= color_c[3],  error_x= dict(array= color_c[2], type= 'data', visible= False), error_y= dict(array= color_c[4], type= 'data', visible= False), marker= {'symbol': next(marker) }, line={'dash': next(line_style)}, mode= "lines+markers", name= color_data[y][i][0]+'_'+SNtype))
 
     #Layout sets up layout of the graph such as the error buttons.
-    layout= go.Layout(title= '('+y+')'+ '-' + '('+x+')' +' Diagram', yaxis=dict(title='('+y+')'), xaxis=dict(title='('+x+')'), height=625,template= templ, legend_title= "Supernovae", showlegend=True, updatemenus=[
+    fig.update_layout(title= '('+y+')'+ '-' + '('+x+')' +' Diagram', yaxis=dict(title='('+y+')'), xaxis=dict(title='('+x+')'), height=625,template= templ, legend_title= "Supernovae", showlegend=True, updatemenus=[
         dict(
             type="dropdown", showactive=False, xanchor="left", yanchor="top", x=0, y=1.08, buttons=list(
                 [dict(
@@ -1172,7 +1317,79 @@ def update_CCDGraph(y, x, templ, dt, SNtype):
                 ]))])
 
     #returns traces and layout to update graph.
-    return {'data': traces, 'layout':layout}
+    if rend == 'image':
+        fig.update_layout(legend=dict( orientation="h", yanchor="top", y=1.08, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+
+        img_bytes = fig.to_image(format="jpg", height=625, width=1350)
+        encoding = b64encode(img_bytes).decode()
+        img_b64 = "data:image/jpg;base64," + encoding
+        return html.Img(src=img_b64)
+
+    elif rend == 'image + no leg':
+        fig.update_layout(showlegend=False, updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+
+        img_bytes = fig.to_image(format="jpg", height=625, width=1350)
+        encoding = b64encode(img_bytes).decode()
+        img_b64 = "data:image/jpg;base64," + encoding
+        return html.Img(src=img_b64)
+
+
+    elif rend == 'image + error bars':
+        fig.update_traces(error_y=dict(visible=True), error_x=dict(visible=True))
+        fig.update_layout(legend=dict( orientation="h", yanchor="top", y=1.08, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+
+        img_bytes = fig.to_image(format="jpg", height=625, width=1350)
+        encoding = b64encode(img_bytes).decode()
+        img_b64 = "data:image/jpg;base64," + encoding
+        return html.Img(src=img_b64)
+
+    elif rend == 'image + yerror bars':
+        fig.update_traces(error_y=dict(visible=True))
+        fig.update_layout(legend=dict( orientation="h", yanchor="top", y=1.08, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+
+        img_bytes = fig.to_image(format="jpg", height=625, width=1350)
+        encoding = b64encode(img_bytes).decode()
+        img_b64 = "data:image/jpg;base64," + encoding
+        return html.Img(src=img_b64)
+
+    elif rend == 'image + xerror bars':
+        fig.update_traces(error_x=dict(visible=True))
+        fig.update_layout(legend=dict( orientation="h", yanchor="top", y=1.08, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+
+        img_bytes = fig.to_image(format="jpg", height=625, width=1350)
+        encoding = b64encode(img_bytes).decode()
+        img_b64 = "data:image/jpg;base64," + encoding
+        return html.Img(src=img_b64)
+
+    elif rend == 'image + error bars + no leg':
+        fig.update_traces(error_y=dict(visible=True), error_x=dict(visible=True))
+        fig.update_layout(showlegend=False, updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+
+        img_bytes = fig.to_image(format="jpg", height=625, width=1350)
+        encoding = b64encode(img_bytes).decode()
+        img_b64 = "data:image/jpg;base64," + encoding
+        return html.Img(src=img_b64)
+
+    elif rend == 'image + yerror bars + no leg':
+        fig.update_traces(error_y=dict(visible=True))
+        fig.update_layout(showlegend=False, updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+
+        img_bytes = fig.to_image(format="jpg", height=625, width=1350)
+        encoding = b64encode(img_bytes).decode()
+        img_b64 = "data:image/jpg;base64," + encoding
+        return html.Img(src=img_b64)
+
+    elif rend == 'image + xerror bars + no leg':
+        fig.update_traces(error_x=dict(visible=True))
+        fig.update_layout(showlegend=False, updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+
+        img_bytes = fig.to_image(format="jpg", height=625, width=1350)
+        encoding = b64encode(img_bytes).decode()
+        img_b64 = "data:image/jpg;base64," + encoding
+        return html.Img(src=img_b64)
+
+    else:
+        return dcc.Graph(figure=fig)
 
 #To turn off debug feature just remove debug variable below.
 if __name__ == "__main__": app.run_server(debug=True)
