@@ -714,7 +714,8 @@ app.layout= html.Div([
             html.P('Notes:'),
             html.P('The average run time for setting up a graph is about 90 seconds.'),
             html.P('If you want to download images of the graphs use the render options drop down to select an image type,'),
-            html.P('the image will then be downloaded to your local directory and a prieview will be shown.')], style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2})]),
+            html.P('the image will then be downloaded to your local directory and a prieview will be shown.'),
+            html.P('Switch the render settings back to interactive before changing other things or you will get multiple unwanted images.')], style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2})]),
 
         html.Br(),
         html.Br(),
