@@ -17,7 +17,7 @@ from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
-from base64 import b64encode
+
 
 #Must have plotly version 5.1.0 higher installed.
 #To do so use pip install plotly==5.1.0
@@ -695,6 +695,8 @@ In making this dash app I used an asset folder to style it a bit. This asset fol
 repo, if you want to remove it delete external_stylesheets variable and the same varaible in
 the app variable.
 '''
+
+
 external_stylesheets = ['assets/ColorColor.css']
 app = dash.Dash(__name__, external_stylesheets= external_stylesheets, assets_folder='assets')
 
@@ -709,7 +711,10 @@ app.layout= html.Div([
             html.P ('After graph appears, if you want to change SNe or dt \
             values only click the submit button of value you changed!'),
             html.P('Enter a SNe type and dt value for one graph at a time, once one is done you can do it for the next one.'),
-            html.P('Note: The average run time for setting up a graph is about 90 seconds.')], style={'color':'white', 'font-size': '1.8vw', 'text-align':'center'})]),
+            html.P('Notes:'),
+            html.P('The average run time for setting up a graph is about 90 seconds.'),
+            html.P('If you want to download images of the graphs use the render options drop down to select an image type,'),
+            html.P('the image will then be downloaded to your local directory and a prieview will be shown.')], style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2})]),
 
         html.Br(),
         html.Br(),
@@ -1026,71 +1031,95 @@ def update_FLGraph(y, templ,rend, SNtype):
 
     if rend == 'image':
         if y != 'All Filters':
-            fig.update_layout(legend=dict( orientation="h", yanchor="top", y=1.08, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
-
-            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
-            encoding = b64encode(img_bytes).decode()
-            img_b64 = "data:image/jpg;base64," + encoding
-            return html.Img(src=img_b64)
+            fig.update_layout(legend=dict( orientation="h", yanchor="top", y=-0.2, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+            if SNtype != "Ia":
+                return html.H1(children=[
+                    html.P('Your Image has downloaded in your local directory with file name '+ y + "_Supernovae_" + SNtype + "_FilterLightCurves_Image.jpg")], \
+                    style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                    dcc.Graph(figure=fig), fig.write_image(y + "_SNe_" + SNtype + "_FilterLightCurves_Image.jpg", height=625, width=7.5*300, scale=1)
+            else:
+                fig.update_layout(height=1000, width=7.5*300)
+                return html.H1(children=[
+                    html.P('Your Image has downloaded in your local directory with file name '+ y + "_Supernovae_" + SNtype + "_FilterLightCurves_Image.jpg")], \
+                    style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                    dcc.Graph(figure=fig), fig.write_image(y + "_SNe_" + SNtype + "_FilterLightCurves_Image.jpg")
         else:
             fig.update_layout(legend=dict( orientation="h", yanchor="top", y=-0.2, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
 
-            img_bytes = fig.to_image(format="jpg", height=700, width=1350)
-            encoding = b64encode(img_bytes).decode()
-            img_b64 = "data:image/jpg;base64," + encoding
-            return html.Img(src=img_b64)
+            if SNtype != "Ia":
+                return html.H1(children=[
+                    html.P('Your Image has downloaded in your local directory with file name '+ y + "_Supernovae_" + SNtype + "_FilterLightCurves_Image.jpg")], \
+                    style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                    dcc.Graph(figure=fig), fig.write_image(y + "_SNe_" + SNtype + "_FilterLightCurves_Image.jpg", height=625, width=7.5*300, scale=1)
+            else:
+                return html.H1(children=[
+                    html.P('Your Image has downloaded in your local directory with file name '+ y + "_Supernovae_" + SNtype + "_FilterLightCurves_Image.jpg")], \
+                    style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                    dcc.Graph(figure=fig), fig.write_image(y + "_SNe_" + SNtype + "_FilterLightCurves_Image.jpg", height=1000, width=7.5*300, scale=1)
 
     elif rend == 'image + no leg':
         if y != 'All Filters':
             fig.update_layout(showlegend=False, updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
 
-            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
-            encoding = b64encode(img_bytes).decode()
-            img_b64 = "data:image/jpg;base64," + encoding
-            return html.Img(src=img_b64)
+            return html.H1(children=[
+                html.P('Your Image has downloaded in your local directory with file name '+ y + "_Supernovae_" + SNtype + "_FilterLightCurves_ImageNoLegnd.jpg")], \
+                style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                dcc.Graph(figure=fig), fig.write_image(y + "_SNe_" + SNtype + "_FilterLightCurves_ImageNoLegnd.jpg", height=625, width=7.5*300, scale=1)
         else:
             fig.update_layout(showlegend=False, updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
 
-            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
-            encoding = b64encode(img_bytes).decode()
-            img_b64 = "data:image/jpg;base64," + encoding
-            return html.Img(src=img_b64)
+            return html.H1(children=[
+                html.P('Your Image has downloaded in your local directory with file name '+ y + "_Supernovae_" + SNtype + "_FilterLightCurves_ImageNoLegnd.jpg")], \
+                style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                dcc.Graph(figure=fig), fig.write_image(y + "_SNe_" + SNtype + "_FilterLightCurves_ImageNoLegnd.jpg", height=625, width=7.5*300, scale=1)
 
     elif rend == 'image + error bars':
         if y != 'All Filters':
             fig.update_traces(error_y=dict(visible=True))
-            fig.update_layout(legend=dict( orientation="h", yanchor="top", y=1.08, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+            fig.update_layout(legend=dict( orientation="h", yanchor="top", y=-0.2, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
 
-            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
-            encoding = b64encode(img_bytes).decode()
-            img_b64 = "data:image/jpg;base64," + encoding
-            return html.Img(src=img_b64)
+            if SNtype != "Ia":
+                return html.H1(children=[
+                    html.P('Your Image has downloaded in your local directory with file name '+ y + "_Supernovae_" + SNtype + "_FilterLightCurves_Image+ErrBars.jpg")], \
+                    style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                    dcc.Graph(figure=fig), fig.write_image(y + "_SNe_" + SNtype + "_FilterLightCurves_Image+ErrBars.jpg", height=625, width=7.5*300, scale=1)
+            else:
+                return html.H1(children=[
+                    html.P('Your Image has downloaded in your local directory with file name '+ y + "_Supernovae_" + SNtype + "_FilterLightCurves_Image+ErrBars.jpg")], \
+                    style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                    dcc.Graph(figure=fig), fig.write_image(y + "_SNe_" + SNtype + "_FilterLightCurves_Image+ErrBars.jpg", height=1000, width=7.5*300, scale=1)
         else: 
             fig.update_traces(error_y=dict(visible=True))
             fig.update_layout(legend=dict( orientation="h", yanchor="top", y=-0.2, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
 
-            img_bytes = fig.to_image(format="jpg", height=700, width=1350)
-            encoding = b64encode(img_bytes).decode()
-            img_b64 = "data:image/jpg;base64," + encoding
-            return html.Img(src=img_b64)
+            if SNtype != "Ia":
+                return html.H1(children=[
+                    html.P('Your Image has downloaded in your local directory with file name '+ y + "_Supernovae_" + SNtype + "_FilterLightCurves_Image+ErrBars.jpg")], \
+                    style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                    dcc.Graph(figure=fig), fig.write_image(y + "_SNe_" + SNtype + "_FilterLightCurves_Image+ErrBars.jpg", height=625, width=7.5*300, scale=1)
+            else:
+                return html.H1(children=[
+                    html.P('Your Image has downloaded in your local directory with file name '+ y + "_Supernovae_" + SNtype + "_FilterLightCurves_Image+ErrBars.jpg")], \
+                    style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                    dcc.Graph(figure=fig), fig.write_image(y + "_SNe_" + SNtype + "_FilterLightCurves_Image+ErrBars.jpg", height=1000, width=7.5*300, scale=1)
 
     elif rend == 'image + error bars + no leg':
         if y != 'All Filters':
             fig.update_traces(error_y=dict(visible=True))
             fig.update_layout(showlegend=False, updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
 
-            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
-            encoding = b64encode(img_bytes).decode()
-            img_b64 = "data:image/jpg;base64," + encoding
-            return html.Img(src=img_b64)
+            return html.H1(children=[
+                html.P('Your Image has downloaded in your local directory with file name '+ y + "_Supernovae_" + SNtype + "_FilterLightCurves_Image+ErrBars_NoLegnd.jpg")], \
+                style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                dcc.Graph(figure=fig), fig.write_image(y + "_SNe_" + SNtype + "_FilterLightCurves_Image+ErrBars_NoLegnd.jpg", height=625, width=7.5*300, scale=1)
         else: 
             fig.update_traces(error_y=dict(visible=True))
             fig.update_layout(showlegend=False, updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
 
-            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
-            encoding = b64encode(img_bytes).decode()
-            img_b64 = "data:image/jpg;base64," + encoding
-            return html.Img(src=img_b64)
+            return html.H1(children=[
+                html.P('Your Image has downloaded in your local directory with file name '+ y + "_Supernovae_" + SNtype + "_FilterLightCurves_Image+ErrBars_NoLegnd.jpg")], \
+                style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                dcc.Graph(figure=fig), fig.write_image(y + "_SNe_" + SNtype + "_FilterLightCurves_Image+ErrBars_NoLegnd.jpg", height=625, width=7.5*300, scale=1)
     else:
         return dcc.Graph(figure=fig)
 
@@ -1199,71 +1228,94 @@ def update_CLGraph(y,templ, rend, dt, SNtype):
     #returns traces and layout to update graph.
     if rend == 'image':
         if y != 'All Colors':
-            fig.update_layout(legend=dict( orientation="h", yanchor="top", y=1.08, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
-
-            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
-            encoding = b64encode(img_bytes).decode()
-            img_b64 = "data:image/jpg;base64," + encoding
-            return html.Img(src=img_b64)
+            fig.update_layout(legend=dict( orientation="h", yanchor="top", y=-0.2, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+            if SNtype != "Ia":
+                return html.H1(children=[
+                    html.P('Your Image has downloaded in your local directory with file name '+ y + "_Supernovae_" + SNtype + "_ColorLightCurves_Image.jpg")], \
+                    style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                    dcc.Graph(figure=fig), fig.write_image(y + "_SNe_" + SNtype + "_ColorLightCurves_Image.jpg", height=625, width=7.5*300, scale=1)
+            else:
+                return html.H1(children=[
+                    html.P('Your Image has downloaded in your local directory with file name '+ y + "_Supernovae_" + SNtype + "_ColorLightCurves_Image.jpg")], \
+                    style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                    dcc.Graph(figure=fig), fig.write_image(y + "_SNe_" + SNtype + "_ColorLightCurves_Image.jpg", height=1000, width=7.5*300, scale=1)
         else:
             fig.update_layout(legend=dict( orientation="h", yanchor="top", y=-0.2, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
 
-            img_bytes = fig.to_image(format="jpg", height=700, width=1350)
-            encoding = b64encode(img_bytes).decode()
-            img_b64 = "data:image/jpg;base64," + encoding
-            return html.Img(src=img_b64)
+            if SNtype != "Ia":
+                return html.H1(children=[
+                    html.P('Your Image has downloaded in your local directory with file name '+ y + "_Supernovae_" + SNtype + "_ColorLightCurves_Image.jpg")], \
+                    style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                    dcc.Graph(figure=fig), fig.write_image(y + "_SNe_" + SNtype + "_ColorLightCurves_Image.jpg", height=625, width=7.5*300, scale=1)
+            else:
+                return html.H1(children=[
+                    html.P('Your Image has downloaded in your local directory with file name '+ y + "_Supernovae_" + SNtype + "_ColorLightCurves_Image.jpg")], \
+                    style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                    dcc.Graph(figure=fig), fig.write_image(y + "_SNe_" + SNtype + "_ColorLightCurves_Image.jpg", height=1000, width=7.5*300, scale=1)
 
     elif rend == 'image + no leg':
         if y != 'All Colors':
             fig.update_layout(showlegend=False, updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
 
-            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
-            encoding = b64encode(img_bytes).decode()
-            img_b64 = "data:image/jpg;base64," + encoding
-            return html.Img(src=img_b64)
+            return html.H1(children=[
+                html.P('Your Image has downloaded in your local directory with file name '+ y + "_Supernovae_" + SNtype + "_ColorLightCurves_Image_NoLegnd.jpg")], \
+                style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                dcc.Graph(figure=fig), fig.write_image(y + "_SNe_" + SNtype + "_ColorLightCurves_Image_NoLegnd.jpg", height=625, width=7.5*300, scale=1)
         else:
             fig.update_layout(showlegend=False, updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
 
-            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
-            encoding = b64encode(img_bytes).decode()
-            img_b64 = "data:image/jpg;base64," + encoding
-            return html.Img(src=img_b64)
+            return html.H1(children=[
+                html.P('Your Image has downloaded in your local directory with file name '+ y + "_Supernovae_" + SNtype + "_ColorLightCurves_Image_NoLegnd.jpg")], \
+                style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                dcc.Graph(figure=fig), fig.write_image(y + "_SNe_" + SNtype + "_ColorLightCurves_Image_NoLegnd.jpg", height=625, width=7.5*300, scale=1)
 
     elif rend == 'image + error bars':
         if y != 'All Colors':
             fig.update_traces(error_y=dict(visible=True))
-            fig.update_layout(legend=dict( orientation="h", yanchor="top", y=1.08, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
-
-            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
-            encoding = b64encode(img_bytes).decode()
-            img_b64 = "data:image/jpg;base64," + encoding
-            return html.Img(src=img_b64)
+            fig.update_layout(legend=dict( orientation="h", yanchor="top", y=-0.2, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+            
+            if SNtype != "Ia":
+                return html.H1(children=[
+                    html.P('Your Image has downloaded in your local directory with file name '+ y + "_Supernovae_" + SNtype + "_ColorLightCurves_Image+ErrBars.jpg")], \
+                    style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                    dcc.Graph(figure=fig), fig.write_image(y + "_SNe_" + SNtype + "_ColorLightCurves_Image+ErrBars.jpg", height=625, width=7.5*300, scale=1)
+            else:
+                return html.H1(children=[
+                    html.P('Your Image has downloaded in your local directory with file name '+ y + "_Supernovae_" + SNtype + "_ColorLightCurves_Image+ErrBars.jpg")], \
+                    style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                    dcc.Graph(figure=fig), fig.write_image(y + "_SNe_" + SNtype + "_ColorLightCurves_Image+ErrBars.jpg", height=1000, width=7.5*300, scale=1)
         else: 
             fig.update_traces(error_y=dict(visible=True))
             fig.update_layout(legend=dict( orientation="h", yanchor="top", y=-0.2, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
 
-            img_bytes = fig.to_image(format="jpg", height=700, width=1350)
-            encoding = b64encode(img_bytes).decode()
-            img_b64 = "data:image/jpg;base64," + encoding
-            return html.Img(src=img_b64)
+            if SNtype != "Ia":
+                return html.H1(children=[
+                    html.P('Your Image has downloaded in your local directory with file name '+ y + "_Supernovae_" + SNtype + "_ColorLightCurves_Image+ErrBars.jpg")], \
+                    style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                    dcc.Graph(figure=fig), fig.write_image(y + "_SNe_" + SNtype + "_ColorLightCurves_Image+ErrBars.jpg", height=625, width=7.5*300, scale=1)
+            else:
+                return html.H1(children=[
+                    html.P('Your Image has downloaded in your local directory with file name '+ y + "_Supernovae_" + SNtype + "_ColorLightCurves_Image+ErrBars.jpg")], \
+                    style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                    dcc.Graph(figure=fig), fig.write_image(y + "_SNe_" + SNtype + "_ColorLightCurves_Image+ErrBars.jpg", height=1000, width=7.5*300, scale=1)
 
     elif rend == 'image + error bars + no leg':
         if y != 'All Colors':
             fig.update_traces(error_y=dict(visible=True))
             fig.update_layout(showlegend=False, updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
 
-            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
-            encoding = b64encode(img_bytes).decode()
-            img_b64 = "data:image/jpg;base64," + encoding
-            return html.Img(src=img_b64)
+            return html.H1(children=[
+                html.P('Your Image has downloaded in your local directory with file name '+ y + "_Supernovae_" + SNtype + "_ColorLightCurves_Image+ErrBars_NoLegnd.jpg")], \
+                style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                dcc.Graph(figure=fig), fig.write_image(y + "_SNe_" + SNtype + "_ColorLightCurves_Image+ErrBars_NoLegnd.jpg", height=625, width=7.5*300, scale=1)
         else: 
             fig.update_traces(error_y=dict(visible=True))
             fig.update_layout(showlegend=False, updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
 
-            img_bytes = fig.to_image(format="jpg", height=625, width=1350)
-            encoding = b64encode(img_bytes).decode()
-            img_b64 = "data:image/jpg;base64," + encoding
-            return html.Img(src=img_b64)
+            return html.H1(children=[
+                html.P('Your Image has downloaded in your local directory with file name '+ y + "_Supernovae_" + SNtype + "_ColorLightCurves_Image+ErrBars_NoLegnd.jpg")], \
+                style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                dcc.Graph(figure=fig), fig.write_image(y + "_SNe_" + SNtype + "_ColorLightCurves_Image+ErrBars_NoLegnd.jpg", height=625, width=7.5*300, scale=1)
     else:
         return dcc.Graph(figure=fig)
 
@@ -1319,75 +1371,98 @@ def update_CCDGraph(y, x, templ, rend, dt, SNtype):
 
     #returns traces and layout to update graph.
     if rend == 'image':
-        fig.update_layout(legend=dict( orientation="h", yanchor="top", y=1.08, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+        fig.update_layout(legend=dict( orientation="h", yanchor="top", y=-0.2, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
 
-        img_bytes = fig.to_image(format="jpg", height=625, width=1350)
-        encoding = b64encode(img_bytes).decode()
-        img_b64 = "data:image/jpg;base64," + encoding
-        return html.Img(src=img_b64)
-
+        if SNtype != "Ia":
+            return html.H1(children=[
+                    html.P('Your Image has downloaded in your local directory with file name: '+ "("+y+")" +"-"+"("+x+")" + "_Supernovae_" + SNtype + "_ColorColorDiagram_Image.jpg")], \
+                    style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                    dcc.Graph(figure=fig), fig.write_image("("+y+")" +"-"+"("+x+")" +"_SNe_" + SNtype + "_ColorColorDiagram_Image.jpg", height=625, width=7.5*300, scale=1)
+        else:
+            return html.H1(children=[
+                    html.P('Your Image has downloaded in your local directory with file name: '+ "("+y+")" +"-"+"("+x+")" + "_Supernovae_" + SNtype + "_ColorColorDiagram_Image.jpg")], \
+                    style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                    dcc.Graph(figure=fig), fig.write_image("("+y+")" +"-"+"("+x+")" +"_SNe_" + SNtype + "_ColorColorDiagram_Image.jpg", height=1000, width=7.5*300, scale=1)
     elif rend == 'image + no leg':
         fig.update_layout(showlegend=False, updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
 
-        img_bytes = fig.to_image(format="jpg", height=625, width=1350)
-        encoding = b64encode(img_bytes).decode()
-        img_b64 = "data:image/jpg;base64," + encoding
-        return html.Img(src=img_b64)
+        return html.H1(children=[
+                html.P('Your Image has downloaded in your local directory with file name '+"("+y+")" +"-"+"("+x+")" + "_Supernovae_" + SNtype + "_ColorColorDiagram_Image_NoLegnd.jpg")], \
+                style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                dcc.Graph(figure=fig), fig.write_image("("+y+")" +"-"+"("+x+")" + "_SNe_" + SNtype + "_ColorColorDiagram_Image_NoLegnd.jpg", height=625, width=7.5*300, scale=1)
 
 
     elif rend == 'image + error bars':
         fig.update_traces(error_y=dict(visible=True), error_x=dict(visible=True))
-        fig.update_layout(legend=dict( orientation="h", yanchor="top", y=1.08, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+        fig.update_layout(legend=dict( orientation="h", yanchor="top", y=-0.2, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
 
-        img_bytes = fig.to_image(format="jpg", height=625, width=1350)
-        encoding = b64encode(img_bytes).decode()
-        img_b64 = "data:image/jpg;base64," + encoding
-        return html.Img(src=img_b64)
+        if SNtype != "Ia":
+            return html.H1(children=[
+                    html.P('Your Image has downloaded in your local directory with file name '+"("+y+")" +"-"+"("+x+")" + "_Supernovae_" + SNtype + "_ColorColorDiagram_Image+BothErrBars.jpg")], \
+                    style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                    dcc.Graph(figure=fig), fig.write_image("("+y+")" +"-"+"("+x+")" + "_SNe_" + SNtype + "_ColorColorDiagram_Image+BothErrBars.jpg", height=625, width=7.5*300, scale=1)
+        else:
+            return html.H1(children=[
+                    html.P('Your Image has downloaded in your local directory with file name '+"("+y+")" +"-"+"("+x+")" + "_Supernovae_" + SNtype + "_ColorColorDiagram_Image+BothErrBars.jpg")], \
+                    style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                    dcc.Graph(figure=fig), fig.write_image("("+y+")" +"-"+"("+x+")" + "_SNe_" + SNtype + "_ColorColorDiagram_Image+BothErrBars.jpg", height=1000, width=7.5*300, scale=1)
 
     elif rend == 'image + yerror bars':
         fig.update_traces(error_y=dict(visible=True))
-        fig.update_layout(legend=dict( orientation="h", yanchor="top", y=1.08, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+        fig.update_layout(legend=dict( orientation="h", yanchor="top", y=-0.2, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
 
-        img_bytes = fig.to_image(format="jpg", height=625, width=1350)
-        encoding = b64encode(img_bytes).decode()
-        img_b64 = "data:image/jpg;base64," + encoding
-        return html.Img(src=img_b64)
+        if SNtype != "Ia":
+            return html.H1(children=[
+                    html.P('Your Image has downloaded in your local directory with file name '+"("+y+")" +"-"+"("+x+")" + "_Supernovae_" + SNtype + "_ColorColorDiagram_Image+YErrBars.jpg")], \
+                    style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                    dcc.Graph(figure=fig), fig.write_image("("+y+")" +"-"+"("+x+")" + "_SNe_" + SNtype + "_ColorColorDiagram_Image+YErrBars.jpg", height=625, width=7.5*300, scale=1)
+        else:
+            return html.H1(children=[
+                html.P('Your Image has downloaded in your local directory with file name '+"("+y+")" +"-"+"("+x+")" + "_Supernovae_" + SNtype + "_ColorColorDiagram_Image+YErrBars.jpg")], \
+                style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                dcc.Graph(figure=fig), fig.write_image("("+y+")" +"-"+"("+x+")" + "_SNe_" + SNtype + "_ColorColorDiagram_Image+YErrBars.jpg", height=1000, width=7.5*300, scale=1)
 
     elif rend == 'image + xerror bars':
         fig.update_traces(error_x=dict(visible=True))
-        fig.update_layout(legend=dict( orientation="h", yanchor="top", y=1.08, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
+        fig.update_layout(legend=dict( orientation="h", yanchor="top", y=-0.2, xanchor="left", x=0), updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
 
-        img_bytes = fig.to_image(format="jpg", height=625, width=1350)
-        encoding = b64encode(img_bytes).decode()
-        img_b64 = "data:image/jpg;base64," + encoding
-        return html.Img(src=img_b64)
+        if SNtype != "Ia":
+            return html.H1(children=[
+                    html.P('Your Image has downloaded in your local directory with file name '+"("+y+")" +"-"+"("+x+")" +"_Supernovae_" + SNtype + "_ColorColorDiagram_Image+XErrBars.jpg")], \
+                    style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                    dcc.Graph(figure=fig), fig.write_image("("+y+")" +"-"+"("+x+")" + "_SNe_" + SNtype + "_ColorColorDiagram_Image+XErrBars.jpg", height=625, width=7.5*300, scale=1)
+        else:
+            return html.H1(children=[
+                html.P('Your Image has downloaded in your local directory with file name '+"("+y+")" +"-"+"("+x+")" +"_Supernovae_" + SNtype + "_ColorColorDiagram_Image+XErrBars.jpg")], \
+                style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                dcc.Graph(figure=fig), fig.write_image("("+y+")" +"-"+"("+x+")" + "_SNe_" + SNtype + "_ColorColorDiagram_Image+XErrBars.jpg", height=1000, width=7.5*300, scale=1)
 
     elif rend == 'image + error bars + no leg':
         fig.update_traces(error_y=dict(visible=True), error_x=dict(visible=True))
         fig.update_layout(showlegend=False, updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
 
-        img_bytes = fig.to_image(format="jpg", height=625, width=1350)
-        encoding = b64encode(img_bytes).decode()
-        img_b64 = "data:image/jpg;base64," + encoding
-        return html.Img(src=img_b64)
+        return html.H1(children=[
+                html.P('Your Image has downloaded in your local directory with file name '+"("+y+")" +"-"+"("+x+")" + "_Supernovae_" + SNtype + "_ColorColorDiagram_Image+BothErrBars_NoLegnd.jpg")], \
+                style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                dcc.Graph(figure=fig), fig.write_image("("+y+")" +"-"+"("+x+")" + "_SNe_" + SNtype + "_ColorColorDiagram_Image+BothErrBars_NoLegnd.jpg", height=625, width=7.5*300, scale=1)
 
     elif rend == 'image + yerror bars + no leg':
         fig.update_traces(error_y=dict(visible=True))
         fig.update_layout(showlegend=False, updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
 
-        img_bytes = fig.to_image(format="jpg", height=625, width=1350)
-        encoding = b64encode(img_bytes).decode()
-        img_b64 = "data:image/jpg;base64," + encoding
-        return html.Img(src=img_b64)
+        return html.H1(children=[
+                html.P('Your Image has downloaded in your local directory with file name '+"("+y+")" +"-"+"("+x+")" + "_Supernovae_" + SNtype + "_ColorColorDiagram_Image+YErrBars_NoLegnd.jpg")], \
+                style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                dcc.Graph(figure=fig), fig.write_image("("+y+")" +"-"+"("+x+")" + "_SNe_" + SNtype + "_ColorColorDiagram_Image+YErrBars_NoLegnd.jpg", height=625, width=7.5*300, scale=1)
 
     elif rend == 'image + xerror bars + no leg':
         fig.update_traces(error_x=dict(visible=True))
         fig.update_layout(showlegend=False, updatemenus=[dict(type="buttons", buttons=list([dict(visible=False)]))])
 
-        img_bytes = fig.to_image(format="jpg", height=625, width=1350)
-        encoding = b64encode(img_bytes).decode()
-        img_b64 = "data:image/jpg;base64," + encoding
-        return html.Img(src=img_b64)
+        return html.H1(children=[
+                html.P('Your Image has downloaded in your local directory with file name '+"("+y+")" +"-"+"("+x+")" +"_Supernovae_" + SNtype + "_ColorColorDiagram_Image+XErrBars_NoLegnd.jpg")], \
+                style={'color':'white', 'font-size': '1.4vw', 'text-align':'center', 'line-height':2}), \
+                dcc.Graph(figure=fig), fig.write_image("("+y+")" +"-"+"("+x+")" + "_SNe_" + SNtype + "_ColorColorDiagram_Image+XErrBars_NoLegnd.jpg", height=625, width=7.5*300, scale=1)
 
     else:
         return dcc.Graph(figure=fig)
